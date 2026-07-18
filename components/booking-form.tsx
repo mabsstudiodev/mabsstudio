@@ -52,6 +52,36 @@ const bookingSchema = z.object({
 
 type BookingValues = z.infer<typeof bookingSchema>;
 
+/** Soft C–E–G chime played when a booking is sent — synthesized so no
+ *  audio asset is needed. Fails silently where audio is unavailable. */
+function playSuccessChime() {
+  try {
+    const Ctx =
+      window.AudioContext ??
+      (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!Ctx) return;
+    const ctx = new Ctx();
+    const now = ctx.currentTime;
+    [523.25, 659.25, 783.99].forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = freq;
+      const start = now + i * 0.09;
+      gain.gain.setValueAtTime(0, start);
+      gain.gain.linearRampToValueAtTime(0.12, start + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.7);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(start);
+      osc.stop(start + 0.75);
+    });
+    window.setTimeout(() => void ctx.close(), 1600);
+  } catch {
+    // Audio is a nicety — never let it break the booking flow.
+  }
+}
+
 function fieldError(id: string, message?: string) {
   if (!message) return null;
   return (
@@ -125,6 +155,7 @@ export function BookingForm() {
       setImageSent(inspiration !== null);
       setSubmitted(values);
       setStatus("success");
+      playSuccessChime();
       reset({ service: validPreselect });
       clearFile();
     } catch {
