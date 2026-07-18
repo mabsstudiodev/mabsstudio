@@ -142,7 +142,7 @@ export async function POST(request: Request) {
             inspiration
               ? `
           <p style="margin:24px 0 10px;color:#6b7280;font-size:13px;letter-spacing:0.04em;text-transform:uppercase;">Inspiration photo</p>
-          <img src="cid:inspiration-photo" alt="Client inspiration" style="display:block;max-width:100%;border-radius:12px;border:1px solid #eef0f4;" />`
+          <img src="cid:inspiration-photo" alt="Client inspiration" width="220" style="display:block;width:220px;max-width:50%;height:auto;border-radius:12px;border:1px solid #eef0f4;" />`
               : ""
           }
         </td>
