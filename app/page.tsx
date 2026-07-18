@@ -25,13 +25,12 @@ import { site } from "@/lib/site";
 export const metadata: Metadata = {
   title: `${site.name} — Beauty Crafted Around You`,
   description:
-    "Premium nails, lash extensions, piercings, wigs, and hairstyling at the University of Cape Coast. Every visit by appointment, every detail considered.",
+    "Premium nails, piercings, wigs, and hairstyling at the University of Cape Coast. Every visit by appointment, every detail considered.",
 };
 
 const heroSlides: HeroSlide[] = [
   { src: "/images/hero.jpg", alt: "The artist behind Mabs Studio", label: "The Studio" },
   { src: "/images/gallery-nails-1.jpg", alt: "Sculpted almond nails with a glossy finish", label: "Nails" },
-  { src: "/images/gallery-lashes-1.svg", alt: "Hybrid lash set, natural volume", label: "Lashes" },
   { src: "/images/gallery-wigs-1.jpg", alt: "Custom wig unit, soft curls", label: "Wigs" },
   { src: "/images/gallery-piercing-1.jpg", alt: "Curated ear stack with gold studs", label: "Piercing" },
 ];
@@ -98,7 +97,7 @@ const processSteps = [
     step: "04",
     title: "Aftercare guidance",
     description:
-      "Leave with simple care instructions so your nails, lashes, piercing, or install stay flawless for longer.",
+      "Leave with simple care instructions so your nails, piercing, or install stay flawless for longer.",
   },
 ];
 
@@ -126,12 +125,12 @@ const faqItems = [
   {
     question: "How long do services take?",
     answer:
-      "Most nail and lash appointments take 60 to 120 minutes, piercings around 30 minutes, and installs 60 to 90 minutes. Custom wigs are made to order, and we'll give you a clear timeline when you book.",
+      "Most nail appointments take 60 to 120 minutes, piercings around 30 minutes, and installs 60 to 90 minutes. Custom wigs are made to order, and we'll give you a clear timeline when you book.",
   },
   {
     question: "How should I prepare for my appointment?",
     answer:
-      "Come with clean, product-free nails or lashes for those services, and freshly washed hair for installs and styling. If anything specific is needed, we'll let you know when we confirm.",
+      "Come with clean, product-free nails for nail services, and freshly washed hair for installs and styling. If anything specific is needed, we'll let you know when we confirm.",
   },
 ];
 
@@ -167,7 +166,7 @@ export default function HomePage() {
               </Reveal>
               <Reveal delay={0.2}>
                 <p className="mt-7 max-w-md text-base leading-relaxed text-muted md:text-lg">
-                  Nails, lashes, wigs, piercings, and hair — by appointment.
+                  Nails, wigs, piercings, and hair — by appointment.
                 </p>
               </Reveal>
               <Reveal delay={0.3}>
@@ -211,7 +210,6 @@ export default function HomePage() {
             <div key={half} className="flex items-center">
               {[
                 "Professional Nails",
-                "Lash Extensions",
                 "Wig Installation",
                 "Body Piercing",
                 "Hairstyling",

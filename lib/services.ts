@@ -21,16 +21,6 @@ export const services: Service[] = [
     featured: true,
   },
   {
-    slug: "lash-extensions",
-    title: "Lash Extensions",
-    description:
-      "Classic, hybrid, and volume sets applied lash by lash for a look that flatters your eye shape.",
-    price: "Starting from GH₵150",
-    duration: "90 – 120 minutes",
-    image: "/images/service-lashes.svg",
-    featured: true,
-  },
-  {
     slug: "body-piercing",
     title: "Body Piercing",
     description:
@@ -47,6 +37,7 @@ export const services: Service[] = [
     price: "Starting from GH₵150",
     duration: "60 – 90 minutes",
     image: "/images/service-wig-install.jpg",
+    featured: true,
   },
   {
     slug: "hairstyling",

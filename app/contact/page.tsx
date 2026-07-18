@@ -113,19 +113,15 @@ export default function ContactPage() {
             </Reveal>
 
             <Reveal delay={0.1}>
-              {/* Replace with a Google Maps embed once the pin is finalized. */}
-              <div
-                className="flex aspect-[4/3] h-full w-full flex-col items-center justify-center rounded-3xl border border-line bg-paper text-center lg:aspect-auto"
-                role="img"
-                aria-label="Map of the University of Cape Coast area"
-              >
-                <MapPin className="size-8 text-navy/30" aria-hidden="true" />
-                <p className="mt-4 font-serif text-xl font-medium text-navy/60">
-                  University of Cape Coast
-                </p>
-                <p className="mt-1 text-xs uppercase tracking-[0.25em] text-muted">
-                  Interactive map coming soon
-                </p>
+              <div className="h-full overflow-hidden rounded-3xl border border-line shadow-soft">
+                <iframe
+                  title="Map of the University of Cape Coast"
+                  src="https://www.google.com/maps?q=University+of+Cape+Coast,+Cape+Coast,+Ghana&z=15&output=embed"
+                  className="aspect-[4/3] h-full w-full border-0 lg:aspect-auto"
+                  loading="lazy"
+                  allowFullScreen
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
               </div>
             </Reveal>
           </div>

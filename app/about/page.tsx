@@ -10,7 +10,7 @@ import { site } from "@/lib/site";
 export const metadata: Metadata = {
   title: "About",
   description:
-    "Mabs Studio is a premium beauty studio at the University of Cape Coast, founded by Mabre Bernice Ama Morkporkpor — nails, lashes, piercings, wigs, and hairstyling by appointment.",
+    "Mabs Studio is a premium beauty studio at the University of Cape Coast, founded by Mabre Bernice Ama Morkporkpor — nails, piercings, wigs, and hairstyling by appointment.",
 };
 
 const values = [
@@ -22,12 +22,12 @@ const values = [
   {
     title: "Experienced artist",
     description:
-      "Techniques refined across nails, lashes, piercings, and hair, so advice and execution come from real practice, not guesswork.",
+      "Techniques refined across nails, piercings, and hair, so advice and execution come from real practice, not guesswork.",
   },
   {
     title: "Attention to detail",
     description:
-      "Cuticle work, lash isolation, lace customization — the invisible steps are the ones we spend the most time on.",
+      "Cuticle work, sterile piercing prep, lace customization — the invisible steps are the ones we spend the most time on.",
   },
   {
     title: "Comfortable environment",
@@ -90,7 +90,7 @@ export default function AboutPage() {
                   idea, one appointment at a time.
                 </p>
                 <p className="mt-4 text-base leading-relaxed text-muted md:text-lg">
-                  Today the studio offers nails, lash extensions, body piercing, wig
+                  Today the studio offers nails, body piercing, wig
                   installation, and hairstyling. The menu
                   has grown; the approach hasn&apos;t. Every client is met personally, consulted
                   honestly, and sent home with work that holds up in daylight.

@@ -29,7 +29,6 @@ export const metadata: Metadata = {
   keywords: [
     "beauty studio",
     "nails",
-    "lash extensions",
     "body piercing",
     "wig installation",
     "hairstyling",
