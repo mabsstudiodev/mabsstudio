@@ -195,7 +195,7 @@ export default function HomePage() {
               className="relative order-first mx-auto w-full max-w-md lg:order-none lg:max-w-none"
             >
               <HeroCarousel slides={heroSlides} />
-              <figcaption className="mt-5 flex items-baseline justify-between text-xs uppercase tracking-[0.25em] text-muted">
+              <figcaption className="mt-5 hidden items-baseline justify-between text-xs uppercase tracking-[0.25em] text-muted lg:flex">
                 <span>Mabs Studio</span>
                 <span>University of Cape Coast</span>
               </figcaption>

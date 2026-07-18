@@ -26,6 +26,7 @@ export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
   const count = slides.length;
 
   const next = React.useCallback(() => setActive((a) => (a + 1) % count), [count]);
+  const prev = React.useCallback(() => setActive((a) => (a - 1 + count) % count), [count]);
 
   React.useEffect(() => {
     if (reduce || paused) return;
@@ -66,12 +67,23 @@ export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
                 scale: 1 - pos * 0.05,
                 opacity: visible ? 1 : 0,
               }}
-              transition={{ duration: reduce ? 0 : 0.8, ease: EASE }}
+              transition={
+                reduce
+                  ? { duration: 0 }
+                  : {
+                      type: "spring",
+                      stiffness: 320,
+                      damping: 32,
+                      opacity: { duration: 0.35, ease: EASE },
+                    }
+              }
               drag={pos === 0 && !reduce ? "x" : false}
               dragConstraints={{ left: 0, right: 0 }}
-              dragElastic={0.6}
+              dragElastic={0.7}
               onDragEnd={(_, info) => {
-                if (Math.abs(info.offset.x) > 70) next();
+                // A committed drag or a quick flick advances; direction decides which way.
+                if (info.offset.x < -60 || info.velocity.x < -500) next();
+                else if (info.offset.x > 60 || info.velocity.x > 500) prev();
               }}
             >
               <div className="relative h-full w-full overflow-hidden rounded-3xl border border-line bg-paper shadow-lift">
@@ -80,7 +92,7 @@ export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
                   alt={slide.alt}
                   fill
                   priority={i === 0}
-                  sizes="(max-width: 1024px) 90vw, 45vw"
+                  sizes="(max-width: 640px) 90vw, 448px"
                   className="pointer-events-none object-cover"
                 />
                 <span

@@ -64,6 +64,15 @@ html {
   animation: drift 24s ease-in-out infinite reverse;
 }
 
+/* Phones: keep the glows but stop animating them — the constant blur
+   compositing competes with the carousel's swipe gesture for the GPU. */
+@media (max-width: 639px) {
+  .animate-drift,
+  .animate-drift-slow {
+    animation: none;
+  }
+}
+
 /* Seamless scrolling strip — content is rendered twice, shifts by half. */
 @keyframes marquee {
   to {
