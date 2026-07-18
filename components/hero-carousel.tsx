@@ -58,7 +58,7 @@ export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
         role="region"
         aria-roledescription="carousel"
         aria-label="Recent work from Mabs Studio"
-        className="relative mx-auto w-full max-w-[24rem] lg:max-w-[28rem]"
+        className="relative mx-auto w-full max-w-[26rem] lg:max-w-[30rem]"
       >
         {/* Horizontal margins reserve room for the cards peeking out on each side. */}
         <div className="relative mx-10 aspect-[9/10] sm:mx-12">
