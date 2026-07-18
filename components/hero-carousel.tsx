@@ -122,9 +122,7 @@ export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
             onClick={() => setActive(i)}
             className={cn(
               "h-2 rounded-full transition-all duration-500",
-              i === active
-                ? "w-7 bg-gradient-to-r from-royal to-blush"
-                : "w-2 bg-navy/25 hover:bg-navy/50"
+              i === active ? "w-7 bg-navy" : "w-2 bg-navy/25 hover:bg-navy/50"
             )}
           />
         ))}
