@@ -1,0 +1,108 @@
+@import "tailwindcss";
+
+@theme {
+  /* Color system */
+  --color-navy: #0f172a;
+  --color-royal: #1e3a8a;
+  --color-ink: #111827;
+  --color-muted: #6b7280;
+  --color-line: #e5e7eb;
+  --color-paper: #f8fafc;
+  --color-blush: #d6749c;
+
+  /* Typography */
+  --font-serif: var(--font-cormorant), Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-inter), "Helvetica Neue", Arial, sans-serif;
+
+  /* Elevation — soft only */
+  --shadow-soft: 0 1px 2px rgb(15 23 42 / 0.04), 0 8px 24px rgb(15 23 42 / 0.06);
+  --shadow-lift: 0 2px 4px rgb(15 23 42 / 0.05), 0 12px 32px rgb(15 23 42 / 0.08);
+
+  /* Signature easing */
+  --ease-luxe: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Soft editorial wash — replaces flat bg-paper on feature sections.
+   Glows are inset from the section edges so they fade to plain paper at the
+   seams and never draw a hard line against neighbouring white sections. */
+.bg-veil {
+  background-color: var(--color-paper);
+  background-image:
+    radial-gradient(44rem 22rem at 80% 22%, rgb(30 58 138 / 0.05), transparent 55%),
+    radial-gradient(40rem 20rem at 18% 78%, rgb(214 116 156 / 0.08), transparent 55%);
+}
+
+/* Fine film grain — printed-magazine texture. Host element must be
+   `relative`; the layer is far too faint to affect legibility. */
+.grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Slow ambient drift for the hero glows. */
+@keyframes drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(1.5rem, -1.25rem, 0);
+  }
+}
+.animate-drift {
+  animation: drift 16s ease-in-out infinite;
+}
+.animate-drift-slow {
+  animation: drift 24s ease-in-out infinite reverse;
+}
+
+/* Seamless scrolling strip — content is rendered twice, shifts by half. */
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+.animate-marquee {
+  animation: marquee 32s linear infinite;
+}
+
+body {
+  background: #ffffff;
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--color-navy);
+  color: #ffffff;
+}
+
+/* Visible, consistent focus for keyboard users */
+:focus-visible {
+  outline: 2px solid var(--color-royal);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

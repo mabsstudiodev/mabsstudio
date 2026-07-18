@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <rect width="1600" height="900" fill="#E9E4DC"/>
+  <rect x="72" y="72" width="1456" height="756" fill="none" stroke="#0F172A" stroke-opacity="0.14" stroke-width="1.5"/>
+  <text x="800" y="288.72" text-anchor="middle" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="42" letter-spacing="18" fill="#0F172A" fill-opacity="0.55">MABS STUDIO</text>
+  <text x="800" y="517.2" text-anchor="middle" font-family="Cormorant Garamond, Georgia, 'Times New Roman', serif" font-style="italic" font-weight="500" font-size="224" fill="#0F172A" fill-opacity="0.4">Mabs Studio</text>
+  <text x="800" y="707.5999999999999" text-anchor="middle" font-family="Cormorant Garamond, Georgia, 'Times New Roman', serif" font-size="51" letter-spacing="10" fill="#0F172A" fill-opacity="0.45">— IV —</text>
+</svg>
