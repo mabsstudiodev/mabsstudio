@@ -33,7 +33,7 @@ const heroSlides: HeroSlide[] = [
   { src: "/images/gallery-nails-1.jpg", alt: "Sculpted almond nails with a glossy finish", label: "Nails" },
   { src: "/images/gallery-lashes-1.svg", alt: "Hybrid lash set, natural volume", label: "Lashes" },
   { src: "/images/gallery-wigs-1.jpg", alt: "Custom wig unit, soft curls", label: "Wigs" },
-  { src: "/images/gallery-piercing-1.svg", alt: "Curated ear stack with gold studs", label: "Piercing" },
+  { src: "/images/gallery-piercing-1.jpg", alt: "Curated ear stack with gold studs", label: "Piercing" },
 ];
 
 const features = [

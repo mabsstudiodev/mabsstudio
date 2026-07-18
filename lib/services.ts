@@ -37,7 +37,7 @@ export const services: Service[] = [
       "Precise, hygienic piercings performed with sterile single-use tools and quality starter jewelry.",
     price: "Starting from GH₵80",
     duration: "20 – 30 minutes",
-    image: "/images/service-piercing.svg",
+    image: "/images/service-piercing.jpg",
   },
   {
     slug: "wig-installation",
