@@ -36,16 +36,38 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Booking is temporarily unavailable." }, { status: 503 });
   }
 
-  let body: unknown;
+  let form: FormData;
   try {
-    body = await request.json();
+    form = await request.formData();
   } catch {
     return NextResponse.json({ error: "Invalid request." }, { status: 400 });
   }
 
-  const parsed = bookingSchema.safeParse(body);
+  const fields: Record<string, string> = {};
+  for (const key of ["name", "phone", "email", "service", "date", "time", "notes"]) {
+    const value = form.get(key);
+    if (typeof value === "string" && value.length > 0) fields[key] = value;
+  }
+
+  const parsed = bookingSchema.safeParse(fields);
   if (!parsed.success) {
     return NextResponse.json({ error: "Please check the form and try again." }, { status: 400 });
+  }
+
+  const upload = form.get("inspiration");
+  let inspiration: { filename: string; content: Buffer; contentType: string } | null = null;
+  if (upload instanceof File && upload.size > 0) {
+    if (!upload.type.startsWith("image/") || upload.size > 4 * 1024 * 1024) {
+      return NextResponse.json(
+        { error: "Inspiration image must be an image under 4MB." },
+        { status: 400 }
+      );
+    }
+    inspiration = {
+      filename: upload.name || "inspiration.jpg",
+      content: Buffer.from(await upload.arrayBuffer()),
+      contentType: upload.type,
+    };
   }
 
   const booking = parsed.data;
@@ -114,8 +136,15 @@ export async function POST(request: Request) {
             ${detailRow("Name", booking.name)}
             ${detailRow("Phone", booking.phone)}
             ${detailRow("Email", booking.email)}
-            ${booking.notes ? detailRow("Notes", booking.notes, true) : ""}
+            ${booking.notes ? detailRow("Notes", booking.notes, !inspiration) : ""}
           </table>
+          ${
+            inspiration
+              ? `
+          <p style="margin:24px 0 10px;color:#6b7280;font-size:13px;letter-spacing:0.04em;text-transform:uppercase;">Inspiration photo</p>
+          <img src="cid:inspiration-photo" alt="Client inspiration" style="display:block;max-width:100%;border-radius:12px;border:1px solid #eef0f4;" />`
+              : ""
+          }
         </td>
       </tr>
       <tr>
@@ -149,6 +178,16 @@ export async function POST(request: Request) {
       subject: `Booking request — ${serviceTitle} · ${booking.date} ${booking.time} · ${booking.name}`,
       text,
       html,
+      attachments: inspiration
+        ? [
+            {
+              filename: inspiration.filename,
+              content: inspiration.content,
+              contentType: inspiration.contentType,
+              cid: "inspiration-photo",
+            },
+          ]
+        : [],
     });
   } catch (error) {
     console.error("Failed to send booking email:", error);

@@ -68,7 +68,8 @@ export function BookingForm() {
 
   const [status, setStatus] = React.useState<"idle" | "success" | "error">("idle");
   const [submitted, setSubmitted] = React.useState<BookingValues | null>(null);
-  const [inspiration, setInspiration] = React.useState<{ name: string; url: string } | null>(null);
+  const [inspiration, setInspiration] = React.useState<{ file: File; url: string } | null>(null);
+  const [imageSent, setImageSent] = React.useState(false);
   const [fileError, setFileError] = React.useState<string | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -96,12 +97,12 @@ export function BookingForm() {
       setFileError("Please upload an image file (JPG, PNG, or WebP).");
       return;
     }
-    if (file.size > 8 * 1024 * 1024) {
-      setFileError("Please keep the image under 8MB.");
+    if (file.size > 4 * 1024 * 1024) {
+      setFileError("Please keep the image under 4MB.");
       return;
     }
     if (inspiration) URL.revokeObjectURL(inspiration.url);
-    setInspiration({ name: file.name, url: URL.createObjectURL(file) });
+    setInspiration({ file, url: URL.createObjectURL(file) });
   }
 
   function clearFile() {
@@ -113,12 +114,15 @@ export function BookingForm() {
   async function onSubmit(values: BookingValues) {
     setStatus("idle");
     try {
-      const res = await fetch("/api/book", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
+      const formData = new FormData();
+      Object.entries(values).forEach(([key, value]) => {
+        if (value != null) formData.append(key, String(value));
       });
+      if (inspiration) formData.append("inspiration", inspiration.file);
+
+      const res = await fetch("/api/book", { method: "POST", body: formData });
       if (!res.ok) throw new Error("Request failed");
+      setImageSent(inspiration !== null);
       setSubmitted(values);
       setStatus("success");
       reset({ service: validPreselect });
@@ -179,8 +183,9 @@ export function BookingForm() {
           </Button>
         </div>
         <p className="mx-auto mt-6 max-w-md text-xs leading-relaxed text-muted">
-          If you added an inspiration image, please attach it in the WhatsApp chat so the artist
-          can see it before your visit.
+          {imageSent
+            ? "Your inspiration image was sent along with your request."
+            : "Have an inspiration photo? You can also share it in the WhatsApp chat."}
         </p>
       </motion.div>
     );
@@ -299,7 +304,7 @@ export function BookingForm() {
                 unoptimized
                 className="size-14 rounded-xl object-cover"
               />
-              <p className="min-w-0 flex-1 truncate text-sm text-ink">{inspiration.name}</p>
+              <p className="min-w-0 flex-1 truncate text-sm text-ink">{inspiration.file.name}</p>
               <button
                 type="button"
                 onClick={clearFile}
