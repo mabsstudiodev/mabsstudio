@@ -29,7 +29,7 @@ export const metadata: Metadata = {
 };
 
 const heroSlides: HeroSlide[] = [
-  { src: "/images/hero.jpg", alt: "The artist behind Mabs Studio", label: "The Studio" },
+  { src: "/images/hero.jpg", alt: "The artist behind Mabs Studio", label: "Mabre Bernice Ama" },
   { src: "/images/gallery-nails-1.jpg", alt: "Sculpted almond nails with a glossy finish", label: "Nails" },
   { src: "/images/gallery-wigs-1.jpg", alt: "Custom wig unit, soft curls", label: "Wigs" },
   { src: "/images/gallery-piercing-1.jpg", alt: "Curated ear stack with gold studs", label: "Piercing" },
