@@ -61,7 +61,7 @@ export default function AboutPage() {
             <ImageReveal className="relative mx-auto w-full max-w-md lg:max-w-none">
               <div className="relative aspect-square overflow-hidden rounded-3xl border border-line shadow-soft">
                 <StudioImage
-                  src="/images/about.png"
+                  src="/images/about.jpg"
                   alt="Mabre Bernice Ama Morkporkpor at work in Mabs Studio"
                   fill
                   sizes="(max-width: 1024px) 90vw, 45vw"

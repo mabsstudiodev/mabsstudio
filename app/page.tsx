@@ -29,7 +29,7 @@ export const metadata: Metadata = {
 };
 
 const heroSlides: HeroSlide[] = [
-  { src: "/images/hero.png", alt: "The artist behind Mabs Studio", label: "The Studio" },
+  { src: "/images/hero.jpg", alt: "The artist behind Mabs Studio", label: "The Studio" },
   { src: "/images/gallery-nails-1.jpg", alt: "Sculpted almond nails with a glossy finish", label: "Nails" },
   { src: "/images/gallery-lashes-1.svg", alt: "Hybrid lash set, natural volume", label: "Lashes" },
   { src: "/images/gallery-wigs-1.jpg", alt: "Custom wig unit, soft curls", label: "Wigs" },
@@ -264,7 +264,7 @@ export default function HomePage() {
             <ImageReveal className="relative order-last mx-auto w-full max-w-md lg:order-first lg:max-w-none">
               <div className="relative aspect-square overflow-hidden rounded-3xl border border-line shadow-soft">
                 <StudioImage
-                  src="/images/about.png"
+                  src="/images/about.jpg"
                   alt="Inside the Mabs Studio space"
                   fill
                   sizes="(max-width: 1024px) 90vw, 45vw"

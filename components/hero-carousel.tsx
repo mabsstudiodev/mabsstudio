@@ -23,7 +23,20 @@ export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
   const reduce = useReducedMotion();
   const [active, setActive] = React.useState(0);
   const [paused, setPaused] = React.useState(false);
+  // Only the front card renders on first paint; the rest of the deck mounts
+  // once the browser is idle so its images don't compete with initial load.
+  const [deckReady, setDeckReady] = React.useState(false);
   const count = slides.length;
+
+  React.useEffect(() => {
+    const start = () => setDeckReady(true);
+    if (typeof window.requestIdleCallback === "function") {
+      const id = window.requestIdleCallback(start, { timeout: 2500 });
+      return () => window.cancelIdleCallback(id);
+    }
+    const id = window.setTimeout(start, 1200);
+    return () => window.clearTimeout(id);
+  }, []);
 
   const next = React.useCallback(() => setActive((a) => (a + 1) % count), [count]);
   const prev = React.useCallback(() => setActive((a) => (a - 1 + count) % count), [count]);
@@ -54,6 +67,7 @@ export function HeroCarousel({ slides }: { slides: HeroSlide[] }) {
           const pos = (i - active + count) % count;
           const visible = pos < 3;
           const side = pos === 0 ? 0 : pos === 1 ? 1 : -1;
+          if (pos !== 0 && !deckReady) return null;
           return (
             <motion.figure
               key={slide.src}
