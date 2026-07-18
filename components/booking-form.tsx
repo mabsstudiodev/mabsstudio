@@ -113,9 +113,12 @@ export function BookingForm() {
   async function onSubmit(values: BookingValues) {
     setStatus("idle");
     try {
-      // Brief pause so the loading state is perceptible; the confirmed request
-      // is handed to the studio via the WhatsApp link on the success screen.
-      await new Promise((resolve) => setTimeout(resolve, 900));
+      const res = await fetch("/api/book", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+      });
+      if (!res.ok) throw new Error("Request failed");
       setSubmitted(values);
       setStatus("success");
       reset({ service: validPreselect });
@@ -159,8 +162,8 @@ export function BookingForm() {
           <span className="text-ink">
             {submitted.date} at {submitted.time}
           </span>{" "}
-          has been noted. Confirm it on WhatsApp so we can reserve your time — appointments are
-          secured on confirmation.
+          has been sent to the studio. We&apos;ll reply personally to confirm your time — or
+          confirm faster on WhatsApp.
         </p>
         <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
           <a
