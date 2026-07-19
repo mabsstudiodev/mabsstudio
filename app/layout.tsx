@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     "nails",
     "lash extensions",
     "body piercing",
-    "wigs",
+    "wig installation",
     "University of Cape Coast",
     "Cape Coast",
     "Ghana",

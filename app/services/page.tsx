@@ -9,7 +9,7 @@ import { services } from "@/lib/services";
 export const metadata: Metadata = {
   title: "Services",
   description:
-    "Professional nails, lash extensions, body piercing, and wigs — by appointment at Mabs Studio, University of Cape Coast.",
+    "Professional nails, lash extensions, body piercing, and wig installations — by appointment at Mabs Studio, University of Cape Coast.",
 };
 
 export default function ServicesPage() {

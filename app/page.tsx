@@ -25,7 +25,7 @@ import { site } from "@/lib/site";
 export const metadata: Metadata = {
   title: `${site.name} — Beauty Crafted Around You`,
   description:
-    "Premium nails, lash extensions, piercings, and wigs at the University of Cape Coast. Every visit by appointment, every detail considered.",
+    "Premium nails, lash extensions, piercings, and wig installations at the University of Cape Coast. Every visit by appointment, every detail considered.",
 };
 
 const heroSlides: HeroSlide[] = [
@@ -211,7 +211,7 @@ export default function HomePage() {
               {[
                 "Professional Nails",
                 "Lash Extensions",
-                "Wigs",
+                "Wig Installations",
                 "Body Piercing",
                 "By Appointment Only",
               ].map((item) => (

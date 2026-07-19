@@ -43,8 +43,8 @@ export const services: Service[] = [
     featured: true,
   },
   {
-    slug: "wigs",
-    title: "Wigs",
+    slug: "wig-installations",
+    title: "Wig Installations",
     description:
       "Custom units and flat, natural-looking installs — lace customization, baby hairs, and a finished style.",
     price: "Starting from GH₵150",
