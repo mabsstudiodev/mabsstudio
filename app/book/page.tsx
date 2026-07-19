@@ -83,7 +83,7 @@ export default function BookPage() {
                     className="mt-3 inline-flex items-center gap-2 text-sm font-medium text-royal underline-offset-4 transition-colors hover:underline"
                   >
                     <MessageCircle className="size-4" aria-hidden="true" />
-                    WhatsApp us on {site.phone}
+                    WhatsApp us on {site.whatsappPhone}
                   </a>
                 </div>
               </Reveal>

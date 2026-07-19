@@ -24,7 +24,7 @@ const contactCards = [
   {
     icon: MessageCircle,
     title: "WhatsApp",
-    detail: site.phone,
+    detail: site.whatsappPhone,
     href: whatsappLink("Hello Mabs Studio, I would like to make an enquiry."),
     action: "Start a chat",
     external: true,

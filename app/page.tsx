@@ -105,7 +105,7 @@ const faqItems = [
   {
     question: "How do I book an appointment?",
     answer:
-      "Use the booking page to send a request with your preferred service, date, and time, or message us directly on WhatsApp at 0532054891. We confirm every appointment personally before it is fixed.",
+      "Use the booking page to send a request with your preferred service, date, and time, or message us directly on WhatsApp at 0501861906. We confirm every appointment personally before it is fixed.",
   },
   {
     question: "Do you accept walk-ins?",

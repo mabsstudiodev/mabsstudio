@@ -389,7 +389,7 @@ export function BookingForm() {
           className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
         >
           Something went wrong while sending your request. Please try again, or reach us directly
-          on WhatsApp at {site.phone}.
+          on WhatsApp at {site.whatsappPhone}.
         </p>
       )}
 
