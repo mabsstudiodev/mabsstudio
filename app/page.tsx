@@ -350,14 +350,29 @@ export default function HomePage() {
             {preview.map((item) => (
               <RevealItem key={item.src}>
                 <div className="overflow-hidden rounded-3xl border border-line shadow-soft">
-                  <StudioImage
-                    src={item.src}
-                    alt={item.alt}
-                    width={item.width}
-                    height={item.height}
-                    sizes="(max-width: 1024px) 50vw, 25vw"
-                    className="aspect-square h-auto w-full object-cover"
-                  />
+                  {item.video ? (
+                    <video
+                      src={item.src}
+                      poster={item.poster}
+                      width={item.width}
+                      height={item.height}
+                      muted
+                      loop
+                      autoPlay
+                      playsInline
+                      aria-label={item.alt}
+                      className="aspect-square h-auto w-full object-cover"
+                    />
+                  ) : (
+                    <StudioImage
+                      src={item.src}
+                      alt={item.alt}
+                      width={item.width}
+                      height={item.height}
+                      sizes="(max-width: 1024px) 50vw, 25vw"
+                      className="aspect-square h-auto w-full object-cover"
+                    />
+                  )}
                 </div>
               </RevealItem>
             ))}
