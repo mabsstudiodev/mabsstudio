@@ -7,13 +7,26 @@ export function ServiceCard({ service, index }: { service: Service; index: numbe
   return (
     <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-line bg-white shadow-soft transition-[box-shadow,transform] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:shadow-lift">
       <div className="relative aspect-square overflow-hidden">
-        <StudioImage
-          src={service.image}
-          alt={service.title}
-          fill
-          sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
-          className="object-cover transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.03]"
-        />
+        {service.video ? (
+          <video
+            src={service.video}
+            poster={service.image}
+            muted
+            loop
+            autoPlay
+            playsInline
+            aria-label={service.title}
+            className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.03]"
+          />
+        ) : (
+          <StudioImage
+            src={service.image}
+            alt={service.title}
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
+            className="object-cover transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.03]"
+          />
+        )}
         <span className="absolute left-5 top-5 font-serif text-sm tracking-[0.2em] text-navy/70">
           {String(index + 1).padStart(2, "0")}
         </span>

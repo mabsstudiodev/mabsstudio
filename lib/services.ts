@@ -5,6 +5,8 @@ export type Service = {
   price: string;
   duration: string;
   image: string;
+  /** Optional looping clip shown on the card instead of the image. */
+  video?: string;
   featured?: boolean;
 };
 
@@ -19,6 +21,16 @@ export const services: Service[] = [
     duration: "60 – 90 minutes",
     image: "/images/service-nails.jpg",
     featured: true,
+  },
+  {
+    slug: "lash-extensions",
+    title: "Lash Extensions",
+    description:
+      "Classic, hybrid, and volume sets applied lash by lash for a look that flatters your eye shape.",
+    price: "Starting from GH₵150",
+    duration: "90 – 120 minutes",
+    image: "/images/service-lashes-poster.jpg",
+    video: "/images/service-lashes.mp4",
   },
   {
     slug: "body-piercing",

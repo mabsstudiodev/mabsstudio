@@ -25,7 +25,7 @@ import { site } from "@/lib/site";
 export const metadata: Metadata = {
   title: `${site.name} — Beauty Crafted Around You`,
   description:
-    "Premium nails, piercings, and wigs at the University of Cape Coast. Every visit by appointment, every detail considered.",
+    "Premium nails, lash extensions, piercings, and wigs at the University of Cape Coast. Every visit by appointment, every detail considered.",
 };
 
 const heroSlides: HeroSlide[] = [
@@ -125,12 +125,12 @@ const faqItems = [
   {
     question: "How long do services take?",
     answer:
-      "Most nail appointments take 60 to 120 minutes, piercings around 30 minutes, and installs 60 to 90 minutes. Custom wigs are made to order, and we'll give you a clear timeline when you book.",
+      "Most nail appointments take 60 to 120 minutes, lash sets 90 to 120 minutes, piercings around 30 minutes, and installs 60 to 90 minutes. Custom wigs are made to order, and we'll give you a clear timeline when you book.",
   },
   {
     question: "How should I prepare for my appointment?",
     answer:
-      "Come with clean, product-free nails for nail services, and freshly washed hair for wig installs. If anything specific is needed, we'll let you know when we confirm.",
+      "Come with clean, product-free nails for nail services, makeup-free lashes for lash appointments, and freshly washed hair for wig installs. If anything specific is needed, we'll let you know when we confirm.",
   },
 ];
 
@@ -166,7 +166,7 @@ export default function HomePage() {
               </Reveal>
               <Reveal delay={0.2}>
                 <p className="mt-7 max-w-md text-base leading-relaxed text-muted md:text-lg">
-                  Nails, wigs, and piercings — by appointment.
+                  Nails, lashes, wigs, and piercings — by appointment.
                 </p>
               </Reveal>
               <Reveal delay={0.3}>
@@ -210,6 +210,7 @@ export default function HomePage() {
             <div key={half} className="flex items-center">
               {[
                 "Professional Nails",
+                "Lash Extensions",
                 "Wigs",
                 "Body Piercing",
                 "By Appointment Only",

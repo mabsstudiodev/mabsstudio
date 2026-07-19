@@ -101,14 +101,28 @@ export function GalleryGrid() {
                 aria-label={`View larger: ${item.alt}`}
                 className="group block w-full overflow-hidden rounded-3xl border border-line bg-paper shadow-soft transition-shadow duration-500 hover:shadow-lift"
               >
-                <StudioImage
-                  src={item.src}
-                  alt={item.alt}
-                  width={item.width}
-                  height={item.height}
-                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                  className="h-auto w-full object-cover transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.03]"
-                />
+                {item.video ? (
+                  <video
+                    src={item.src}
+                    poster={item.poster}
+                    width={item.width}
+                    height={item.height}
+                    muted
+                    loop
+                    autoPlay
+                    playsInline
+                    className="h-auto w-full object-cover transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.03]"
+                  />
+                ) : (
+                  <StudioImage
+                    src={item.src}
+                    alt={item.alt}
+                    width={item.width}
+                    height={item.height}
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    className="h-auto w-full object-cover transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.03]"
+                  />
+                )}
               </button>
             </motion.li>
           ))}
@@ -169,15 +183,30 @@ export function GalleryGrid() {
               className="max-h-full"
               onClick={(e) => e.stopPropagation()}
             >
-              <StudioImage
-                src={active.src}
-                alt={active.alt}
-                width={active.width}
-                height={active.height}
-                sizes="90vw"
-                className="max-h-[80vh] w-auto rounded-3xl object-contain"
-                priority
-              />
+              {active.video ? (
+                <video
+                  src={active.src}
+                  poster={active.poster}
+                  width={active.width}
+                  height={active.height}
+                  muted
+                  loop
+                  autoPlay
+                  playsInline
+                  controls
+                  className="max-h-[80vh] w-auto rounded-3xl object-contain"
+                />
+              ) : (
+                <StudioImage
+                  src={active.src}
+                  alt={active.alt}
+                  width={active.width}
+                  height={active.height}
+                  sizes="90vw"
+                  className="max-h-[80vh] w-auto rounded-3xl object-contain"
+                  priority
+                />
+              )}
               <figcaption className="mt-4 text-center text-sm text-white/80">
                 {active.alt}
                 <span className="mx-3 text-white/40" aria-hidden="true">
