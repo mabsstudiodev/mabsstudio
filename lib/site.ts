@@ -2,7 +2,7 @@ export const site = {
   name: "Mabs Studio",
   tagline: "Enhancing Beauty, Inspiring Confidence.",
   description:
-    "Mabs Studio is a premium beauty studio at the University of Cape Coast specializing in professional nails, body piercings, wig installation, and hairstyling.",
+    "Mabs Studio is a premium beauty studio at the University of Cape Coast specializing in professional nails, body piercings, and wigs.",
   owner: "Mabre Bernice Ama Morkporkpor",
   location: "University of Cape Coast, Cape Coast, Ghana",
   phone: "0532054891",

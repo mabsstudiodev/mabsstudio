@@ -8,7 +8,7 @@ import { CtaBanner } from "@/components/cta-banner";
 export const metadata: Metadata = {
   title: "Gallery",
   description:
-    "Browse recent nails, piercings, hair, and wig work from Mabs Studio — photographed as it left the chair.",
+    "Browse recent nails, piercings, and wig work from Mabs Studio — photographed as it left the chair.",
 };
 
 export default function GalleryPage() {

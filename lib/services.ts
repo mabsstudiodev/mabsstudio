@@ -28,25 +28,16 @@ export const services: Service[] = [
     price: "Starting from GH₵80",
     duration: "20 – 30 minutes",
     image: "/images/service-piercing.jpg",
-  },
-  {
-    slug: "wig-installation",
-    title: "Wig Installation",
-    description:
-      "Flat, secure, natural-looking installs with lace customization, baby hairs, and a finished style.",
-    price: "Starting from GH₵150",
-    duration: "60 – 90 minutes",
-    image: "/images/service-wig-install.jpg",
     featured: true,
   },
   {
-    slug: "hairstyling",
-    title: "Hairstyling",
+    slug: "wigs",
+    title: "Wigs",
     description:
-      "From sleek everyday styles to occasion-ready looks — braids, curls, and treatments done with care.",
-    price: "Starting from GH₵120",
-    duration: "60 – 180 minutes",
-    image: "/images/service-hair.jpg",
+      "Custom units and flat, natural-looking installs — lace customization, baby hairs, and a finished style.",
+    price: "Starting from GH₵150",
+    duration: "60 – 90 minutes",
+    image: "/images/service-wig-install.jpg",
     featured: true,
   },
 ];

@@ -25,7 +25,7 @@ import { site } from "@/lib/site";
 export const metadata: Metadata = {
   title: `${site.name} — Beauty Crafted Around You`,
   description:
-    "Premium nails, piercings, wigs, and hairstyling at the University of Cape Coast. Every visit by appointment, every detail considered.",
+    "Premium nails, piercings, and wigs at the University of Cape Coast. Every visit by appointment, every detail considered.",
 };
 
 const heroSlides: HeroSlide[] = [
@@ -130,7 +130,7 @@ const faqItems = [
   {
     question: "How should I prepare for my appointment?",
     answer:
-      "Come with clean, product-free nails for nail services, and freshly washed hair for installs and styling. If anything specific is needed, we'll let you know when we confirm.",
+      "Come with clean, product-free nails for nail services, and freshly washed hair for wig installs. If anything specific is needed, we'll let you know when we confirm.",
   },
 ];
 
@@ -166,7 +166,7 @@ export default function HomePage() {
               </Reveal>
               <Reveal delay={0.2}>
                 <p className="mt-7 max-w-md text-base leading-relaxed text-muted md:text-lg">
-                  Nails, wigs, piercings, and hair — by appointment.
+                  Nails, wigs, and piercings — by appointment.
                 </p>
               </Reveal>
               <Reveal delay={0.3}>
@@ -210,9 +210,8 @@ export default function HomePage() {
             <div key={half} className="flex items-center">
               {[
                 "Professional Nails",
-                "Wig Installation",
+                "Wigs",
                 "Body Piercing",
-                "Hairstyling",
                 "By Appointment Only",
               ].map((item) => (
                 <span

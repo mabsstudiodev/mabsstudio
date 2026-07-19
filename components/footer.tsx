@@ -23,7 +23,7 @@ export function Footer() {
             </p>
             <p className="mt-4 text-sm leading-relaxed text-muted">{site.tagline}</p>
             <p className="mt-2 text-sm leading-relaxed text-muted">
-              Nails, piercings, wigs, and hairstyling — by appointment at the
+              Nails, piercings, and wigs — by appointment at the
               University of Cape Coast.
             </p>
             <SocialLinks className="mt-6" />
