@@ -13,20 +13,22 @@ gallery items.
 
 ---
 
-## 1. Vercel build command
+## 1. Build command — already committed
 
-**Override the build command** in Vercel → Settings → Build & Deployment:
+`vercel.json` sets it:
 
 ```
 npx convex deploy --cmd 'npm run build'
 ```
 
-This is not optional. It deploys the Convex functions for that commit and
-injects the correct `NEXT_PUBLIC_CONVEX_URL` into the build. The public pages
-are prerendered at build time from Convex (`lib/public-data.ts`), so a plain
-`npm run build` would either fail or bake in the dev deployment's URL.
+It lives in the repo rather than the Vercel UI because a plain `npm run build`
+fails the deploy: the public pages prerender from Convex
+(`lib/public-data.ts`), so without this the build has no
+`NEXT_PUBLIC_CONVEX_URL` and dies on `/services`. `vercel.json` also takes
+precedence over any command set in the dashboard, so the two cannot drift.
 
-Do **not** also set `NEXT_PUBLIC_CONVEX_URL` by hand — the command supplies it.
+Do **not** set `NEXT_PUBLIC_CONVEX_URL` by hand — the command supplies it, and
+a stale hand-set value would silently point the live site at the dev database.
 
 ## 2. Environment variables
 
@@ -34,7 +36,7 @@ Vercel → Settings → Environment Variables:
 
 | Variable | Value | Notes |
 | --- | --- | --- |
-| `CONVEX_DEPLOY_KEY` | *Production* deploy key | Convex dashboard → the **prod** deployment → Settings → Deploy keys. Generate a **Production** key. This is what lets the build command deploy. |
+| `CONVEX_DEPLOY_KEY` | *Production* deploy key | Convex dashboard → **prod** (`superb-ant-220`) → Settings → Deploy keys. **Scope it to the Production environment only** — see below. |
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | `pk_…` | From Clerk → API keys |
 | `CLERK_SECRET_KEY` | `sk_…` | Secret — Vercel only, never committed |
 | `GMAIL_USER` | the sending Gmail address | Booking emails |
@@ -45,7 +47,18 @@ Vercel → Settings → Environment Variables:
 `.env.local` is gitignored, so none of these reach the repo — they must be
 entered in Vercel.
 
-## 3. Clerk is still a development instance
+## 3. Scope the deploy key, or previews will overwrite production
+
+Add `CONVEX_DEPLOY_KEY` to the **Production** environment only. A Production
+key present in Preview would make every preview build deploy its functions to
+the live database.
+
+If you want working previews, generate a separate **Preview** deploy key in the
+Convex dashboard and add it under the Preview environment. Convex then spins up
+a throwaway backend per branch. Without one, preview builds fail — which is the
+safe default.
+
+## 4. Clerk is still a development instance
 
 The current keys are `pk_test_` / `sk_test_`. A Clerk **development** instance
 will function on a Vercel URL, but it is not meant for real traffic: relaxed
@@ -70,7 +83,7 @@ the custom domain and DNS records), then:
 Skipping step 2 or 3 gives a dashboard that loads but returns "Not authorized"
 on every query.
 
-## 4. After the first deploy
+## 5. After the first deploy
 
 - Open `/` and `/services` — services and gallery should render.
 - Open `/admin` — should redirect to `/sign-in`.
