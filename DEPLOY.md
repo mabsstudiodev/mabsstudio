@@ -18,17 +18,28 @@ gallery items.
 `vercel.json` sets it:
 
 ```
-npx convex deploy --cmd 'npm run build'
+unset CONVEX_DEPLOYMENT && npx convex deploy --cmd 'npm run build'
 ```
 
-It lives in the repo rather than the Vercel UI because a plain `npm run build`
-fails the deploy: the public pages prerender from Convex
-(`lib/public-data.ts`), so without this the build has no
-`NEXT_PUBLIC_CONVEX_URL` and dies on `/services`. `vercel.json` also takes
-precedence over any command set in the dashboard, so the two cannot drift.
+Two things are going on.
 
-Do **not** set `NEXT_PUBLIC_CONVEX_URL` by hand — the command supplies it, and
-a stale hand-set value would silently point the live site at the dev database.
+`npx convex deploy --cmd` is required because the public pages prerender from
+Convex (`lib/public-data.ts`). It supplies `NEXT_PUBLIC_CONVEX_URL` to the
+build; a bare `npm run build` dies prerendering `/services`.
+
+`unset CONVEX_DEPLOYMENT` is defensive. The Convex CLI picks its target in this
+order:
+
+1. `CONVEX_DEPLOYMENT` if set — the local-development path, which needs a
+   logged-in user token that CI does not have.
+2. `CONVEX_DEPLOY_KEY` — the CI path.
+
+So a `CONVEX_DEPLOYMENT` copied into Vercel alongside the other variables wins
+over the deploy key and fails with `MissingAccessToken`. Unsetting it in the
+build command means the deploy key always decides.
+
+`vercel.json` also takes precedence over any command set in the dashboard, so
+the two cannot drift.
 
 ## 2. Environment variables
 
@@ -46,6 +57,13 @@ Vercel → Settings → Environment Variables:
 
 `.env.local` is gitignored, so none of these reach the repo — they must be
 entered in Vercel.
+
+### Do not copy these two from `.env.local`
+
+| Variable | Why not |
+| --- | --- |
+| `CONVEX_DEPLOYMENT` | Local-development pointer at the **dev** deployment. In CI it overrides the deploy key and fails the build. The build command unsets it, but it should not be there at all. |
+| `NEXT_PUBLIC_CONVEX_URL` | Supplied by `convex deploy --cmd`. A hand-set value risks pointing the live site at the dev database. |
 
 ## 3. Scope the deploy key, or previews will overwrite production
 
