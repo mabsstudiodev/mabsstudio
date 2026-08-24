@@ -20,6 +20,16 @@
 
   /* Signature easing */
   --ease-luxe: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Admin surface tokens — tighter and flatter than the marketing site.
+     The admin reuses the brand palette above and adds nothing to it. */
+  --color-admin-bg: #f8fafc;
+  --color-admin-surface: #ffffff;
+  --color-admin-border: #e5e7eb;
+  --color-admin-sidebar: #0f172a;
+  --radius-admin: 0.5rem;
+  --shadow-admin: 0 1px 2px rgb(15 23 42 / 0.05);
+  --shadow-admin-raised: 0 4px 16px rgb(15 23 42 / 0.08);
 }
 
 html {
@@ -96,11 +106,40 @@ body {
   color: #ffffff;
 }
 
-/* Visible, consistent focus for keyboard users */
+/* Visible, consistent focus for keyboard users.
+   Form controls are excluded: they already signal focus by darkening their own
+   border, and stacking an offset outline on top read as a heavy double box.
+
+   No `border-radius` here on purpose — setting one overrides the element's own
+   radius while it is focused, which squared off every rounded input and button
+   mid-interaction. Browsers already curve the outline to match the element. */
 :focus-visible {
   outline: 2px solid var(--color-royal);
   outline-offset: 3px;
-  border-radius: 2px;
+}
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: none;
+}
+
+/* Chrome paints autofilled fields with its own pale blue background, which
+   made an autofilled email sit next to a normal password field looking like a
+   different control. There is no property to disable it, so the standard
+   workaround is an inset shadow large enough to cover the field, plus an
+   absurdly long transition so it is not repainted on focus. */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active,
+select:-webkit-autofill,
+textarea:-webkit-autofill {
+  -webkit-text-fill-color: var(--color-ink);
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset;
+  box-shadow: 0 0 0 1000px #ffffff inset;
+  caret-color: var(--color-ink);
+  transition: background-color 100000s ease-in-out 0s;
 }
 
 @media (prefers-reduced-motion: reduce) {

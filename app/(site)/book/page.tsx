@@ -6,6 +6,7 @@ import { PageHero } from "@/components/page-hero";
 import { Reveal } from "@/components/motion";
 import { BookingForm } from "@/components/booking-form";
 import { site, whatsappLink } from "@/lib/site";
+import { getPublicServices } from "@/lib/public-data";
 
 export const metadata: Metadata = {
   title: "Book Appointment",
@@ -31,7 +32,9 @@ const assurances = [
   },
 ];
 
-export default function BookPage() {
+export default async function BookPage() {
+  const services = await getPublicServices();
+
   return (
     <>
       <PageHero
@@ -92,7 +95,7 @@ export default function BookPage() {
             <Reveal delay={0.15}>
               <div className="rounded-2xl border border-line bg-white p-7 shadow-soft md:p-10">
                 <Suspense fallback={<p className="text-sm text-muted">Loading booking form…</p>}>
-                  <BookingForm />
+                  <BookingForm services={services} />
                 </Suspense>
               </div>
             </Reveal>

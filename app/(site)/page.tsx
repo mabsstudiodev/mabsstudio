@@ -18,8 +18,7 @@ import { Faq } from "@/components/faq";
 import { CtaBanner } from "@/components/cta-banner";
 import { HeroCarousel, type HeroSlide } from "@/components/hero-carousel";
 import { StudioImage } from "@/components/studio-image";
-import { services } from "@/lib/services";
-import { galleryItems } from "@/lib/gallery";
+import { getPublicGallery, getPublicServices } from "@/lib/public-data";
 import { site } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -134,9 +133,17 @@ const faqItems = [
   },
 ];
 
-export default function HomePage() {
-  const featured = services.filter((s) => s.featured);
-  const preview = galleryItems.slice(0, 4);
+export default async function HomePage() {
+  const [services, gallery] = await Promise.all([
+    getPublicServices(),
+    getPublicGallery(),
+  ]);
+
+  // Fall back to the first few services if nothing is flagged featured, so the
+  // homepage grid is never empty just because the flag was cleared.
+  const flagged = services.filter((s) => s.featured);
+  const featured = flagged.length > 0 ? flagged : services.slice(0, 3);
+  const preview = gallery.slice(0, 4);
 
   return (
     <>

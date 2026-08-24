@@ -4,7 +4,7 @@ import { PageHero } from "@/components/page-hero";
 import { RevealGroup, RevealItem } from "@/components/motion";
 import { ServiceCard } from "@/components/service-card";
 import { CtaBanner } from "@/components/cta-banner";
-import { services } from "@/lib/services";
+import { getPublicServices } from "@/lib/public-data";
 
 export const metadata: Metadata = {
   title: "Services",
@@ -12,7 +12,9 @@ export const metadata: Metadata = {
     "Professional nails, lash extensions, body piercing, and wig installations — by appointment at Mabs Studio, University of Cape Coast.",
 };
 
-export default function ServicesPage() {
+export default async function ServicesPage() {
+  const services = await getPublicServices();
+
   return (
     <>
       <PageHero

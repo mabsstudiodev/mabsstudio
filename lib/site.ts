@@ -11,7 +11,17 @@ export const site = {
   whatsappPhone: "0501861906",
   email: "berniceama07@gmail.com",
   hours: "Monday – Sunday · Appointments only",
-  url: "https://mabsstudio.com",
+  /**
+   * Canonical origin, driving Open Graph tags, the sitemap, and robots.txt.
+   * Set NEXT_PUBLIC_SITE_URL on the host (Vercel) so previews and the live
+   * domain each advertise themselves correctly; the literal is the fallback
+   * for local work.
+   */
+  url:
+    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
+    (process.env.VERCEL_PROJECT_PRODUCTION_URL
+      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+      : "https://mabsstudio.com"),
   // Add handles when available — empty entries are hidden across the site.
   social: {
     instagram: "",

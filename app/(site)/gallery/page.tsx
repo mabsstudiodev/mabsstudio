@@ -4,6 +4,7 @@ import { PageHero } from "@/components/page-hero";
 import { Reveal } from "@/components/motion";
 import { GalleryGrid } from "@/components/gallery-grid";
 import { CtaBanner } from "@/components/cta-banner";
+import { getPublicGallery } from "@/lib/public-data";
 
 export const metadata: Metadata = {
   title: "Gallery",
@@ -11,7 +12,9 @@ export const metadata: Metadata = {
     "Browse recent nails, lashes, piercings, and wig work from Mabs Studio — captured as it left the chair.",
 };
 
-export default function GalleryPage() {
+export default async function GalleryPage() {
+  const items = await getPublicGallery();
+
   return (
     <>
       <PageHero
@@ -22,7 +25,7 @@ export default function GalleryPage() {
       <section className="py-20 md:py-28">
         <Container>
           <Reveal>
-            <GalleryGrid />
+            <GalleryGrid items={items} />
           </Reveal>
         </Container>
       </section>

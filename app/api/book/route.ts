@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import { z } from "zod";
-import { services } from "@/lib/services";
+import { api } from "@/convex/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
+import { publicMutation, publicQuery } from "@/lib/admin/convex-server";
 import { site } from "@/lib/site";
 
 export const runtime = "nodejs";
@@ -71,8 +73,14 @@ export async function POST(request: Request) {
   }
 
   const booking = parsed.data;
-  const serviceTitle =
-    services.find((s) => s.slug === booking.service)?.title ?? booking.service;
+
+  // The form posts a service id; fall back to the raw value if it no longer
+  // resolves, so a renamed service can never lose a customer's request.
+  const services = await publicQuery(api.services.listActive, {}).catch(() => []);
+  const matched = services.find(
+    (s) => s.id === booking.service || s.slug === booking.service
+  );
+  const serviceTitle = matched?.title ?? booking.service;
 
   const prettyDate = (() => {
     const d = new Date(`${booking.date}T00:00:00`);
@@ -165,6 +173,42 @@ export async function POST(request: Request) {
     </table>
   </div>`;
 
+  // Record the booking first so it reaches the dashboard even if email fails.
+  // A failure here must not lose the request either, so it only warns.
+  let bookingId: string | null = null;
+  try {
+    let inspirationStorageId: Id<"_storage"> | undefined;
+    if (inspiration) {
+      const uploadUrl = await publicMutation(
+        api.bookings.generateInspirationUploadUrl,
+        {}
+      );
+      const upload = await fetch(uploadUrl, {
+        method: "POST",
+        headers: { "Content-Type": inspiration.contentType },
+        body: new Uint8Array(inspiration.content),
+      });
+      if (upload.ok) {
+        const { storageId } = (await upload.json()) as { storageId: string };
+        inspirationStorageId = storageId as Id<"_storage">;
+      }
+    }
+
+    bookingId = await publicMutation(api.bookings.create, {
+      customerName: booking.name,
+      phone: booking.phone,
+      email: booking.email,
+      serviceId: matched?.id ?? booking.service,
+      serviceName: serviceTitle,
+      date: booking.date,
+      time: booking.time,
+      notes: booking.notes,
+      inspirationImage: inspirationStorageId,
+    });
+  } catch (error) {
+    console.error("Failed to record booking in Convex:", error);
+  }
+
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: { user, pass },
@@ -197,5 +241,5 @@ export async function POST(request: Request) {
     );
   }
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, id: bookingId });
 }

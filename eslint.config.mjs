@@ -18,6 +18,10 @@ const eslintConfig = [
       "out/**",
       "build/**",
       "next-env.d.ts",
+      // Written by `npx convex dev`; not ours to lint.
+      "convex/_generated/**",
+      // One-off CommonJS provenance script, not application code.
+      "scripts/seed/**",
     ],
   },
 ];

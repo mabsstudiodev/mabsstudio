@@ -103,12 +103,21 @@ export function Footer() {
           <p>
             © {new Date().getFullYear()} {site.name}. All rights reserved.
           </p>
-          <Link
-            href="/privacy"
-            className="transition-colors duration-300 hover:text-royal"
-          >
-            Privacy Policy
-          </Link>
+          <div className="flex items-center gap-5">
+            <Link
+              href="/privacy"
+              className="transition-colors duration-300 hover:text-royal"
+            >
+              Privacy Policy
+            </Link>
+            {/* Discreet entry point to the studio's admin dashboard. */}
+            <Link
+              href="/admin"
+              className="transition-colors duration-300 hover:text-royal"
+            >
+              Studio Login
+            </Link>
+          </div>
         </div>
       </Container>
     </footer>

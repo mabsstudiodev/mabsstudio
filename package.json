@@ -9,15 +9,17 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@clerk/nextjs": "^7.8.1",
     "@hookform/resolvers": "^5.4.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "convex": "^1.45.0",
     "framer-motion": "^12.42.2",
     "lucide-react": "^1.23.0",
     "next": "15.5.20",
     "nodemailer": "^9.0.3",
-    "react": "19.1.0",
-    "react-dom": "19.1.0",
+    "react": "^19.1.4",
+    "react-dom": "^19.1.4",
     "react-hook-form": "^7.80.0",
     "tailwind-merge": "^3.6.0",
     "zod": "^4.4.3"

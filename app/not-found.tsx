@@ -1,9 +1,15 @@
 import Link from "next/link";
 import { Container } from "@/components/container";
+import { Navbar } from "@/components/navbar";
+import { Footer } from "@/components/footer";
 
 export default function NotFound() {
+  // Root not-found renders outside the (site) group, so it carries its own chrome.
   return (
-    <section className="bg-veil">
+    <>
+      <Navbar />
+      <main id="main">
+        <section className="bg-veil">
       <Container>
         <div className="mx-auto flex min-h-[70vh] max-w-xl flex-col items-center justify-center pt-20 text-center">
           <p className="text-xs font-medium uppercase tracking-[0.3em] text-royal">404</p>
@@ -22,6 +28,9 @@ export default function NotFound() {
           </Link>
         </div>
       </Container>
-    </section>
+        </section>
+      </main>
+      <Footer />
+    </>
   );
 }

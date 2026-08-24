@@ -4,20 +4,44 @@ import * as React from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { galleryFilters, galleryItems, type GalleryCategory } from "@/lib/gallery";
+import type { GalleryCategory, GalleryItem } from "@/lib/gallery";
+import { CATEGORY_LABELS } from "@/lib/admin/catalog";
 import { StudioImage } from "@/components/studio-image";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
-export function GalleryGrid() {
+// Canonical filter order; only categories with media are offered.
+const CATEGORY_ORDER: GalleryCategory[] = [
+  "nails",
+  "lashes",
+  "piercing",
+  "wigs",
+  "hair",
+  "other",
+];
+
+export function GalleryGrid({ items: allItems }: { items: GalleryItem[] }) {
   const [filter, setFilter] = React.useState<GalleryCategory | "all">("all");
   const [activeIndex, setActiveIndex] = React.useState<number | null>(null);
   const closeButtonRef = React.useRef<HTMLButtonElement>(null);
   const lastTriggerRef = React.useRef<HTMLElement | null>(null);
 
+  // Derived from the media actually present, so a new category added in the
+  // admin shows up here without a code change — and empty ones never appear.
+  const filters = React.useMemo(() => {
+    const present = new Set(allItems.map((i) => i.category));
+    return [
+      { label: "All", value: "all" as const },
+      ...CATEGORY_ORDER.filter((c) => present.has(c)).map((c) => ({
+        label: CATEGORY_LABELS[c],
+        value: c,
+      })),
+    ];
+  }, [allItems]);
+
   const items = React.useMemo(
-    () => (filter === "all" ? galleryItems : galleryItems.filter((i) => i.category === filter)),
-    [filter]
+    () => (filter === "all" ? allItems : allItems.filter((i) => i.category === filter)),
+    [filter, allItems]
   );
 
   const open = activeIndex !== null;
@@ -59,7 +83,7 @@ export function GalleryGrid() {
         role="group"
         aria-label="Filter gallery by category"
       >
-        {galleryFilters.map((f) => (
+        {filters.map((f) => (
           <button
             key={f.value}
             type="button"

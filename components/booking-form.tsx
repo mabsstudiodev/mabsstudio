@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { services } from "@/lib/services";
+import type { Service } from "@/lib/services";
 import { site, whatsappLink } from "@/lib/site";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -91,7 +91,7 @@ function fieldError(id: string, message?: string) {
   );
 }
 
-export function BookingForm() {
+export function BookingForm({ services }: { services: Service[] }) {
   const searchParams = useSearchParams();
   const preselected = searchParams.get("service") ?? "";
   const validPreselect = services.some((s) => s.slug === preselected) ? preselected : "";

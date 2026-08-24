@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Cormorant_Garamond, Inter } from "next/font/google";
-import { Navbar } from "@/components/navbar";
-import { Footer } from "@/components/footer";
+import { ClerkProvider } from "@clerk/nextjs";
 import { site } from "@/lib/site";
 import "./globals.css";
 
@@ -96,15 +95,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${cormorant.variable} ${inter.variable} antialiased`}>
-        <a
-          href="#main"
-          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-xl focus:bg-navy focus:px-5 focus:py-3 focus:text-sm focus:text-white"
+        <ClerkProvider
+          signInUrl="/sign-in"
+          signUpUrl="/sign-up"
+          signInFallbackRedirectUrl="/admin"
+          signUpFallbackRedirectUrl="/admin"
         >
-          Skip to content
-        </a>
-        <Navbar />
-        <main id="main">{children}</main>
-        <Footer />
+          {children}
+        </ClerkProvider>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }}
