@@ -226,12 +226,14 @@ export function GalleryManager({
                 onDragOver={(event) => event.preventDefault()}
                 onDrop={() => dropOn(item.id)}
                 className={cn(
-                  "group relative overflow-hidden rounded-admin border bg-admin-surface shadow-admin transition-opacity",
+                  // No `overflow-hidden` here: it would clip the action menu's
+                  // dropdown. The image below does its own corner clipping.
+                  "group relative rounded-admin border bg-admin-surface shadow-admin transition-opacity",
                   dragId === item.id ? "opacity-50" : "opacity-100",
                   item.active ? "border-admin-border" : "border-dashed border-muted/40"
                 )}
               >
-                <div className="relative aspect-[3/4] bg-paper">
+                <div className="relative aspect-[3/4] overflow-hidden rounded-t-admin bg-paper">
                   <Image
                     src={item.type === "video" ? (item.poster ?? item.src) : item.src}
                     alt={item.alt}

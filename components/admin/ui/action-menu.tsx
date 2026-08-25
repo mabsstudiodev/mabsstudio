@@ -29,22 +29,54 @@ export function ActionMenu({
   align?: "left" | "right";
 }) {
   const [open, setOpen] = React.useState(false);
+  // Menus near the bottom of a short screen must open upward, or they render
+  // below the fold and the tap looks like it did nothing.
+  const [dropUp, setDropUp] = React.useState(false);
   const containerRef = React.useRef<HTMLDivElement>(null);
+  const triggerRef = React.useRef<HTMLButtonElement>(null);
   const menuId = React.useId();
+
+  /** Roughly the tallest the menu gets: items plus its vertical padding. */
+  const estimatedHeight = items.length * 36 + 8;
+
+  function toggle() {
+    if (!open) {
+      const rect = triggerRef.current?.getBoundingClientRect();
+      const below = rect ? window.innerHeight - rect.bottom : Number.POSITIVE_INFINITY;
+      const above = rect ? rect.top : 0;
+      setDropUp(below < estimatedHeight + 16 && above > below);
+    }
+    setOpen((value) => !value);
+  }
 
   React.useEffect(() => {
     if (!open) return;
-    const onPointerDown = (event: MouseEvent) => {
+
+    // `pointerdown` covers mouse, touch, and pen alike. `mousedown` is only
+    // synthesised on touch devices, and not dependably — on iOS that left the
+    // menu unable to close, and made it feel broken.
+    const onPointerDown = (event: Event) => {
       if (!containerRef.current?.contains(event.target as Node)) setOpen(false);
     };
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
+      if (event.key === "Escape") {
+        setOpen(false);
+        triggerRef.current?.focus();
+      }
     };
-    document.addEventListener("mousedown", onPointerDown);
+    // The menu is positioned against the trigger, so once the page moves
+    // underneath it the position is stale — close rather than drift.
+    const onScroll = () => setOpen(false);
+
+    document.addEventListener("pointerdown", onPointerDown);
     document.addEventListener("keydown", onKeyDown);
+    window.addEventListener("scroll", onScroll, true);
+    window.addEventListener("resize", onScroll);
     return () => {
-      document.removeEventListener("mousedown", onPointerDown);
+      document.removeEventListener("pointerdown", onPointerDown);
       document.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("scroll", onScroll, true);
+      window.removeEventListener("resize", onScroll);
     };
   }, [open]);
 
@@ -69,7 +101,7 @@ export function ActionMenu({
 
   const itemClass = (destructive?: boolean, disabled?: boolean) =>
     cn(
-      "flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm transition-colors",
+      "flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-sm transition-colors",
       disabled
         ? "cursor-not-allowed text-muted/60"
         : destructive
@@ -80,13 +112,14 @@ export function ActionMenu({
   return (
     <div ref={containerRef} className="relative">
       <button
+        ref={triggerRef}
         type="button"
         aria-label={label}
         aria-haspopup="menu"
         aria-expanded={open}
         aria-controls={open ? menuId : undefined}
-        onClick={() => setOpen((value) => !value)}
-        className="flex size-8 items-center justify-center rounded-admin text-muted transition-colors hover:bg-paper hover:text-navy"
+        onClick={toggle}
+        className="flex size-10 items-center justify-center rounded-admin text-muted transition-colors hover:bg-paper hover:text-navy sm:size-9"
       >
         <MoreHorizontal aria-hidden="true" className="size-4" />
       </button>
@@ -96,13 +129,14 @@ export function ActionMenu({
           <motion.div
             id={menuId}
             role="menu"
-            initial={{ opacity: 0, y: -4 }}
+            initial={{ opacity: 0, y: dropUp ? 4 : -4 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
+            exit={{ opacity: 0, y: dropUp ? 4 : -4 }}
             transition={{ duration: 0.14, ease: [0.22, 1, 0.36, 1] }}
             className={cn(
-              "absolute z-30 mt-1 w-48 overflow-hidden rounded-admin border border-admin-border bg-admin-surface py-1 shadow-admin-raised",
-              align === "right" ? "right-0" : "left-0"
+              "absolute z-50 w-48 overflow-hidden rounded-admin border border-admin-border bg-admin-surface py-1 shadow-admin-raised",
+              align === "right" ? "right-0" : "left-0",
+              dropUp ? "bottom-full mb-1" : "top-full mt-1"
             )}
           >
             {items.map((item) => {
