@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useForm, useFieldArray } from "react-hook-form";
+import { Controller, useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ExternalLink, Plus, Settings, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardBody, CardFooter, CardHeader } from "./ui/card";
 import { Field } from "./ui/field";
+import { MediaField, MediaInput } from "./ui/media-field";
 import { useToast } from "./ui/toast";
 import { aboutContentSchema, heroContentSchema } from "@/lib/admin/schemas";
 import { updateAboutContent, updateHeroContent } from "@/lib/admin/actions";
@@ -145,15 +146,23 @@ function HeroForm({ hero }: { hero: HeroContent }) {
             <ul className="mt-3 space-y-2">
               {fields.map((field, index) => (
                 <li key={field.id} className="flex items-start gap-2">
-                  <div className="flex-1">
+                  <div className="min-w-0 flex-1">
                     <label htmlFor={`hero-image-${index}`} className="sr-only">
-                      Hero image {index + 1} path
+                      Hero image {index + 1}
                     </label>
-                    <Input
-                      id={`hero-image-${index}`}
-                      aria-invalid={Boolean(errors.images?.[index])}
-                      placeholder="/images/hero.jpg"
-                      {...register(`images.${index}` as const)}
+                    <Controller
+                      control={control}
+                      name={`images.${index}` as const}
+                      render={({ field: image }) => (
+                        <MediaInput
+                          id={`hero-image-${index}`}
+                          kind="image"
+                          value={image.value ?? ""}
+                          onChange={image.onChange}
+                          placeholder="/images/hero.jpg"
+                          invalid={Boolean(errors.images?.[index])}
+                        />
+                      )}
                     />
                     {errors.images?.[index] ? (
                       <p className="mt-1 text-xs font-medium text-red-600">
@@ -166,7 +175,7 @@ function HeroForm({ hero }: { hero: HeroContent }) {
                     onClick={() => remove(index)}
                     disabled={fields.length <= 1}
                     aria-label={`Remove hero image ${index + 1}`}
-                    className="mt-1 rounded p-2 text-muted transition-colors hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-40"
+                    className="mt-2 rounded p-2 text-muted transition-colors hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     <Trash2 aria-hidden="true" className="size-4" />
                   </button>
@@ -206,6 +215,7 @@ function AboutForm({ about }: { about: AboutContent }) {
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors, isSubmitting, isDirty },
   } = useForm<AboutContent>({
     resolver: zodResolver(aboutContentSchema),
@@ -264,14 +274,22 @@ function AboutForm({ about }: { about: AboutContent }) {
             {(props) => <Textarea {...props} rows={3} {...register("experience")} />}
           </Field>
 
-          <Field
-            label="Studio image path"
-            required
-            hint="A file already in /public/images."
-            error={errors.image?.message}
-          >
-            {(props) => <Input {...props} {...register("image")} />}
-          </Field>
+          <Controller
+            control={control}
+            name="image"
+            render={({ field }) => (
+              <MediaField
+                label="Studio image"
+                kind="image"
+                required
+                value={field.value ?? ""}
+                onChange={field.onChange}
+                error={errors.image?.message}
+                hint="Upload from your device, or point at a file already in /public/images."
+                placeholder="/images/about.jpg"
+              />
+            )}
+          />
         </CardBody>
         <CardFooter>
           <Button type="submit" size="sm" loading={isSubmitting} disabled={!isDirty}>

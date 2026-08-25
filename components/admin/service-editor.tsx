@@ -300,7 +300,7 @@ export function ServiceEditor({
                       />
                     ) : (
                       <span className="flex h-full items-center justify-center text-xs text-muted">
-                        Add an image path to preview
+                        Upload or link an image to preview
                       </span>
                     )}
                   </div>
