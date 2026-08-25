@@ -9,7 +9,14 @@ export const site = {
   phoneIntl: "+233532054891",
   whatsapp: "233501861906",
   whatsappPhone: "0501861906",
-  email: "berniceama07@gmail.com",
+  /** Shown publicly — contact page, footer, privacy policy, LocalBusiness schema. */
+  email: "mabsstudiobookings@gmail.com",
+  /**
+   * Where booking requests land. Kept as its own field so a missing
+   * BOOKING_TO_EMAIL cannot silently reroute bookings if the public address
+   * ever changes — the env override wins, this is the safe default.
+   */
+  bookingEmail: "mabsstudiobookings@gmail.com",
   hours: "Monday – Sunday · Appointments only",
   /**
    * Canonical origin, driving Open Graph tags, the sitemap, and robots.txt.

@@ -11,6 +11,7 @@
 import type * as activity from "../activity.js";
 import type * as bookings from "../bookings.js";
 import type * as businessSettings from "../businessSettings.js";
+import type * as files from "../files.js";
 import type * as gallery from "../gallery.js";
 import type * as lib_auth from "../lib/auth.js";
 import type * as services from "../services.js";
@@ -27,6 +28,7 @@ declare const fullApi: ApiFromModules<{
   activity: typeof activity;
   bookings: typeof bookings;
   businessSettings: typeof businessSettings;
+  files: typeof files;
   gallery: typeof gallery;
   "lib/auth": typeof lib_auth;
   services: typeof services;

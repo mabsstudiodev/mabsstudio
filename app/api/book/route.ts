@@ -217,7 +217,7 @@ export async function POST(request: Request) {
   try {
     await transporter.sendMail({
       from: `"${site.name} Website" <${user}>`,
-      to: process.env.BOOKING_TO_EMAIL ?? site.email,
+      to: process.env.BOOKING_TO_EMAIL ?? site.bookingEmail,
       replyTo: booking.email,
       subject: `Booking request — ${serviceTitle} · ${booking.date} ${booking.time} · ${booking.name}`,
       text,

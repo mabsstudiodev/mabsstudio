@@ -136,6 +136,22 @@ export async function reorderServices(orderedIds: string[]): Promise<void> {
   revalidateServices();
 }
 
+/* --------------------------------------------------------------------- files */
+
+/** Step 1 of an admin media upload (service photos and clips). */
+export async function getMediaUploadUrl(): Promise<string> {
+  return mutation(api.files.generateUploadUrl, {});
+}
+
+/** Step 2 — the durable URL to save on the record. */
+export async function resolveMediaUrl(storageId: string): Promise<string> {
+  const url = await query(api.files.getUrl, {
+    storageId: storageId as Id<"_storage">,
+  });
+  if (!url) throw new Error("The upload finished but the file could not be read back.");
+  return url;
+}
+
 /* ------------------------------------------------------------------- gallery */
 
 function revalidateGallery() {

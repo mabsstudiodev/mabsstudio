@@ -4,7 +4,7 @@ import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardBody, CardHeader, FieldGroup } from "./ui/card";
 import { CheckboxField, Field } from "./ui/field";
+import { MediaField } from "./ui/media-field";
 import { useToast } from "./ui/toast";
 import { serviceSchema, type ServiceFormValues } from "@/lib/admin/schemas";
 import { createService, updateService } from "@/lib/admin/actions";
@@ -42,6 +43,7 @@ export function ServiceEditor({
     handleSubmit,
     watch,
     setValue,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<ServiceFormValues>({
     resolver: zodResolver(serviceSchema),
@@ -224,34 +226,38 @@ export function ServiceEditor({
                       </Field>
                     </div>
 
-                    <Field
-                      label="Image path"
-                      required
-                      hint="A file already in /public/images, e.g. /images/service-nails.jpg"
-                      error={errors.image?.message}
-                    >
-                      {(props) => (
-                        <Input
-                          {...props}
-                          {...register("image")}
+                    <Controller
+                      control={control}
+                      name="image"
+                      render={({ field }) => (
+                        <MediaField
+                          label="Image"
+                          kind="image"
+                          required
+                          value={field.value ?? ""}
+                          onChange={field.onChange}
+                          error={errors.image?.message}
+                          hint="Upload from your device, or point at a file already in /public/images."
                           placeholder="/images/service-nails.jpg"
                         />
                       )}
-                    </Field>
+                    />
 
-                    <Field
-                      label="Video path"
-                      hint="Optional. A looping clip shown on the card instead of the image."
-                      error={errors.video?.message}
-                    >
-                      {(props) => (
-                        <Input
-                          {...props}
-                          {...register("video")}
+                    <Controller
+                      control={control}
+                      name="video"
+                      render={({ field }) => (
+                        <MediaField
+                          label="Video"
+                          kind="video"
+                          value={field.value ?? ""}
+                          onChange={field.onChange}
+                          error={errors.video?.message}
+                          hint="Optional. A looping clip shown on the card instead of the image."
                           placeholder="/images/service-lashes.mp4"
                         />
                       )}
-                    </Field>
+                    />
 
                     <div className="space-y-3 pt-1">
                       <CheckboxField
