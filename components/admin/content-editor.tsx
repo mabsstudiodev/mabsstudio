@@ -16,6 +16,7 @@ import { aboutContentSchema, heroContentSchema } from "@/lib/admin/schemas";
 import { updateAboutContent, updateHeroContent } from "@/lib/admin/actions";
 import { toUserMessage } from "@/lib/admin/data-source";
 import type { AboutContent, HeroContent, SiteContent } from "@/types/admin";
+import { adminHref, siteHref } from "@/lib/admin-url";
 
 /**
  * Content editor for the business-managed copy on the public site.
@@ -37,7 +38,7 @@ export function ContentEditor({ content }: { content: SiteContent }) {
         />
         <CardBody>
           <Link
-            href="/admin/settings"
+            href={adminHref("/settings")}
             className="inline-flex h-10 items-center gap-2 rounded-admin border border-admin-border px-4 text-sm font-medium text-navy transition-colors hover:bg-paper"
           >
             <Settings aria-hidden="true" className="size-4" />
@@ -87,7 +88,7 @@ function HeroForm({ hero }: { hero: HeroContent }) {
           description="The first thing a visitor reads."
           action={
             <a
-              href="/"
+              href={siteHref("/")}
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center gap-1.5 text-sm font-medium text-royal hover:underline"
@@ -242,7 +243,7 @@ function AboutForm({ about }: { about: AboutContent }) {
           description="The studio's story, mission, and approach."
           action={
             <a
-              href="/about"
+              href={siteHref("/about")}
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center gap-1.5 text-sm font-medium text-royal hover:underline"

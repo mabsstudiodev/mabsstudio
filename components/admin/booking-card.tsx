@@ -3,6 +3,7 @@ import { Phone } from "lucide-react";
 import { formatDate, formatTime } from "@/lib/admin/format";
 import { BookingStatusBadge } from "./ui/badge";
 import type { Booking } from "@/types/admin";
+import { adminHref } from "@/lib/admin-url";
 
 /**
  * Booking summary used by the dashboard lists and as the mobile fallback for
@@ -20,7 +21,7 @@ export function BookingCard({
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
           <Link
-            href={`/admin/bookings/${booking.id}`}
+            href={adminHref(`/bookings/${booking.id}`)}
             className="truncate text-sm font-medium text-navy hover:underline"
           >
             {booking.customerName}
@@ -46,7 +47,7 @@ export function BookingCard({
           <span className="sr-only sm:hidden">Call {booking.customerName}</span>
         </a>
         <Link
-          href={`/admin/bookings/${booking.id}`}
+          href={adminHref(`/bookings/${booking.id}`)}
           className="inline-flex h-8 items-center rounded-admin border border-admin-border px-3 text-sm font-medium text-navy transition-colors hover:bg-white"
         >
           View

@@ -23,14 +23,15 @@ import {
 } from "@/lib/admin/bookings";
 import { getRecentActivity } from "@/lib/admin/activity";
 import { firstName, greeting } from "@/lib/admin/format";
+import { adminHref } from "@/lib/admin-url";
 
 export const metadata = { title: "Dashboard" };
 
 const QUICK_ACTIONS: { label: string; href: string; icon: LucideIcon }[] = [
-  { label: "Add Service", href: "/admin/services/new", icon: Plus },
-  { label: "Upload Gallery Image", href: "/admin/gallery?upload=1", icon: Images },
-  { label: "View Bookings", href: "/admin/bookings", icon: CalendarDays },
-  { label: "Edit Website Content", href: "/admin/content", icon: FileText },
+  { label: "Add Service", href: adminHref("/services/new"), icon: Plus },
+  { label: "Upload Gallery Image", href: adminHref("/gallery?upload=1"), icon: Images },
+  { label: "View Bookings", href: adminHref("/bookings"), icon: CalendarDays },
+  { label: "Edit Website Content", href: adminHref("/content"), icon: FileText },
 ];
 
 export default async function AdminDashboardPage() {
@@ -97,7 +98,7 @@ export default async function AdminDashboardPage() {
               description="The next few appointments after today."
               action={
                 <Link
-                  href="/admin/bookings"
+                  href={adminHref("/bookings")}
                   className="text-sm font-medium text-royal hover:underline"
                 >
                   View all bookings

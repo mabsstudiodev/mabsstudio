@@ -28,7 +28,7 @@ export const site = {
     process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
     (process.env.VERCEL_PROJECT_PRODUCTION_URL
       ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-      : "https://mabsstudio.com"),
+      : "https://mabsstudiogh.com"),
   // Add handles when available — empty entries are hidden across the site.
   social: {
     instagram: "",

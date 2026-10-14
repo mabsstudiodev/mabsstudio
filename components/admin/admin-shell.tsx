@@ -10,6 +10,7 @@ import { breadcrumbFor } from "./nav";
 import { UserMenu } from "./user-menu";
 import { ToastProvider } from "./ui/toast";
 import type { AdminUser } from "@/types/admin";
+import { adminHref, siteHref } from "@/lib/admin-url";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -105,7 +106,7 @@ export function AdminShell({
               <ol className="flex items-center gap-1.5 text-sm">
                 <li className="hidden sm:block">
                   <Link
-                    href="/admin"
+                    href={adminHref("/")}
                     className="text-muted transition-colors hover:text-navy"
                   >
                     Admin
@@ -140,7 +141,7 @@ export function AdminShell({
             {/* Icon-only on narrow screens: the sidebar no longer carries a
                 copy of this, so it has to stay reachable on a phone. */}
             <a
-              href="/"
+              href={siteHref("/")}
               target="_blank"
               rel="noreferrer"
               className="inline-flex h-9 items-center gap-2 rounded-admin border border-admin-border px-2.5 text-sm font-medium text-navy transition-colors hover:bg-paper sm:px-3"

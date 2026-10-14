@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Cormorant_Garamond, Inter } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { site } from "@/lib/site";
+import { adminHref } from "@/lib/admin-url";
 import "./globals.css";
 
 const cormorant = Cormorant_Garamond({
@@ -98,8 +99,8 @@ export default function RootLayout({
         <ClerkProvider
           signInUrl="/sign-in"
           signUpUrl="/sign-up"
-          signInFallbackRedirectUrl="/admin"
-          signUpFallbackRedirectUrl="/admin"
+          signInFallbackRedirectUrl={adminHref("/")}
+          signUpFallbackRedirectUrl={adminHref("/")}
         >
           {children}
         </ClerkProvider>

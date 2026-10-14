@@ -53,7 +53,7 @@ Vercel → Settings → Environment Variables:
 | `GMAIL_USER` | the sending Gmail address | Booking emails |
 | `GMAIL_APP_PASSWORD` | Gmail app password | Secret |
 | `BOOKING_TO_EMAIL` | studio inbox | Where requests land |
-| `NEXT_PUBLIC_SITE_URL` | e.g. `https://mabsstudio.com` | Drives Open Graph, sitemap, robots. Falls back to Vercel's production URL, then `mabsstudio.com`. |
+| `NEXT_PUBLIC_SITE_URL` | e.g. `https://mabsstudiogh.com` | Drives Open Graph, sitemap, robots. Falls back to Vercel's production URL, then `mabsstudiogh.com`. |
 
 `.env.local` is gitignored, so none of these reach the repo — they must be
 entered in Vercel.
@@ -109,6 +109,27 @@ on every query.
 - Submit a test booking on `/book`, then confirm it appears in
   `/admin/bookings` **and** that the email arrives. That exercises both halves
   of the endpoint.
+
+## 6. Admin subdomain (`admin.mabsstudiogh.com`)
+
+The dashboard can be served from its own subdomain. It is off until
+`NEXT_PUBLIC_ADMIN_HOST` is set, so the order matters:
+
+1. Vercel → Settings → Domains → add `admin.mabsstudiogh.com`.
+2. Add the DNS record Vercel shows (a CNAME named `admin`) at Hostinger, and
+   wait for Vercel to mark the domain valid.
+3. Add `NEXT_PUBLIC_ADMIN_HOST` = `admin.mabsstudiogh.com` to **Production**
+   only, then redeploy (it is inlined at build time).
+
+Once it is on, `mabsstudiogh.com/admin/...` and `/sign-in` redirect to the
+subdomain, where `/bookings` renders the `/admin/bookings` route
+(`middleware.ts`). Setting the variable before DNS resolves would send the
+dashboard to a dead host — removing it and redeploying turns it back off.
+Previews and local dev keep `/admin`. Clerk needs no change: a production
+instance covers subdomains of its domain.
+
+To try it locally, build with `NEXT_PUBLIC_ADMIN_HOST=admin.localhost` and
+open `http://admin.localhost:3000`.
 
 ## Notes
 

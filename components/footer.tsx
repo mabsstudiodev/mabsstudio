@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Mail, MapPin, Phone } from "lucide-react";
 import { site, whatsappLink } from "@/lib/site";
@@ -18,9 +19,12 @@ export function Footer() {
       <Container>
         <div className="grid gap-12 py-16 md:grid-cols-2 lg:grid-cols-4 lg:gap-8 lg:py-20">
           <div className="max-w-xs">
-            <p className="font-serif text-2xl font-semibold text-navy">
-              Mabs<span className="text-royal"> Studio</span>
-            </p>
+            <div className="flex items-center gap-3">
+              <Image src="/logo.png" alt="" width={44} height={44} className="size-11" />
+              <p className="font-serif text-2xl font-semibold text-navy">
+                Mabs<span className="text-royal"> Studio</span>
+              </p>
+            </div>
             <p className="mt-4 text-sm leading-relaxed text-muted">{site.tagline}</p>
             <p className="mt-2 text-sm leading-relaxed text-muted">
               Nails, lashes, piercings, and wig installations — by appointment at the

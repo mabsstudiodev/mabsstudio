@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { FileQuestion } from "lucide-react";
+import { adminHref } from "@/lib/admin-url";
 
 /** Keeps 404s inside /admin on the admin chrome instead of the marketing 404. */
 export default function AdminNotFound() {
@@ -13,7 +14,7 @@ export default function AdminNotFound() {
         This record doesn&apos;t exist, or it has been deleted.
       </p>
       <Link
-        href="/admin"
+        href={adminHref("/")}
         className="mt-6 inline-flex h-10 items-center justify-center rounded-admin border border-admin-border px-5 text-sm font-medium text-navy transition-colors hover:bg-paper"
       >
         Back to dashboard

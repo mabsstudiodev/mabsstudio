@@ -14,6 +14,7 @@ import { deleteService, duplicateService, toggleServiceActive } from "@/lib/admi
 import { CATEGORY_LABELS, formatPrice } from "@/lib/admin/catalog";
 import { toUserMessage } from "@/lib/admin/data-source";
 import type { AdminService } from "@/types/admin";
+import { adminHref } from "@/lib/admin-url";
 
 /**
  * Service list.
@@ -77,7 +78,7 @@ export function ServicesView({ services }: { services: AdminService[] }) {
           icon={Scissors}
           title="No services found."
           description="Add the treatments the studio offers so they appear on the public website."
-          action={{ label: "Add service", href: "/admin/services/new" }}
+          action={{ label: "Add service", href: adminHref("/services/new") }}
         />
       </Card>
     );
@@ -105,7 +106,7 @@ export function ServicesView({ services }: { services: AdminService[] }) {
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <Link
-                    href={`/admin/services/${service.id}`}
+                    href={adminHref(`/services/${service.id}`)}
                     className="text-sm font-medium text-navy hover:underline"
                   >
                     {service.title}
@@ -135,7 +136,7 @@ export function ServicesView({ services }: { services: AdminService[] }) {
                     {
                       label: "Edit",
                       icon: Pencil,
-                      href: `/admin/services/${service.id}`,
+                      href: adminHref(`/services/${service.id}`),
                     },
                     {
                       label: "Duplicate",

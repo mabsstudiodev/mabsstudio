@@ -20,6 +20,7 @@ import { createService, updateService } from "@/lib/admin/actions";
 import { CATEGORY_LABELS, formatPrice, slugify } from "@/lib/admin/catalog";
 import { toUserMessage } from "@/lib/admin/data-source";
 import { SERVICE_CATEGORIES, type AdminService, type ServiceCategory } from "@/types/admin";
+import { adminHref } from "@/lib/admin-url";
 
 /**
  * Create/edit form for a service, with a live preview of the public service
@@ -87,7 +88,7 @@ export function ServiceEditor({
         await createService(payload);
         toast.success("Service created.");
       }
-      router.push("/admin/services");
+      router.push(adminHref("/services"));
     } catch (error) {
       toast.error(
         isEdit ? "Service not updated" : "Service not created",
@@ -99,7 +100,7 @@ export function ServiceEditor({
   return (
     <>
       <Link
-        href="/admin/services"
+        href={adminHref("/services")}
         className="mb-4 inline-flex items-center gap-1.5 text-sm text-muted transition-colors hover:text-navy"
       >
         <ArrowLeft aria-hidden="true" className="size-4" />
@@ -330,7 +331,7 @@ export function ServiceEditor({
             variant="outline"
             size="sm"
             disabled={isSubmitting}
-            onClick={() => router.push("/admin/services")}
+            onClick={() => router.push(adminHref("/services"))}
           >
             Cancel
           </Button>

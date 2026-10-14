@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ShieldAlert } from "lucide-react";
 import { AdminShell } from "@/components/admin/admin-shell";
 import { canManage, getAdminUser } from "@/lib/admin/auth";
+import { siteHref } from "@/lib/admin-url";
 
 export const metadata: Metadata = {
   title: "Admin",
@@ -55,7 +56,7 @@ function NoAccess({ reason }: { reason: "role" | "unassigned" }) {
           , then reload this page.
         </p>
         <Link
-          href="/"
+          href={siteHref("/")}
           className="mt-6 inline-flex h-10 items-center justify-center rounded-admin border border-admin-border px-5 text-sm font-medium text-navy transition-colors hover:bg-paper"
         >
           Back to website

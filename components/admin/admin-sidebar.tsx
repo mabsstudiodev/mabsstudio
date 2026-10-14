@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -27,7 +28,8 @@ export function AdminSidebar({
 
   return (
     <div className="flex h-full flex-col bg-admin-sidebar text-white">
-      <div className="flex items-baseline gap-2 px-5 py-6">
+      <div className="flex items-center gap-2.5 px-5 py-6">
+        <Image src="/logo.png" alt="" width={32} height={32} className="size-8" />
         <span className="font-serif text-xl font-medium tracking-wide">Mabs Studio</span>
         <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-blush">
           Admin

@@ -30,6 +30,7 @@ import {
   whatsappDigits,
 } from "@/lib/admin/format";
 import type { Booking, BookingStatus } from "@/types/admin";
+import { adminHref } from "@/lib/admin-url";
 
 type StatusAction = {
   status: BookingStatus;
@@ -109,7 +110,7 @@ export function BookingDetail({ booking: initial }: { booking: Booking }) {
       await deleteBooking(booking.id);
       toast.success("Booking deleted.");
       setConfirmDelete(false);
-      router.push("/admin/bookings");
+      router.push(adminHref("/bookings"));
     } catch (error) {
       toast.error(
         "Booking not deleted",
@@ -124,7 +125,7 @@ export function BookingDetail({ booking: initial }: { booking: Booking }) {
   return (
     <>
       <Link
-        href="/admin/bookings"
+        href={adminHref("/bookings")}
         className="mb-4 inline-flex items-center gap-1.5 text-sm text-muted transition-colors hover:text-navy"
       >
         <ArrowLeft aria-hidden="true" className="size-4" />

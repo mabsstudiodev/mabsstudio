@@ -8,6 +8,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ExternalLink, LayoutDashboard, LogOut, UserCog } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { AdminUser } from "@/types/admin";
+import { adminHref, siteHref } from "@/lib/admin-url";
 
 /**
  * Profile menu for the admin top bar.
@@ -42,7 +43,7 @@ export function UserMenu({ user }: { user: AdminUser }) {
 
   async function signOut() {
     setSigningOut(true);
-    await clerk.signOut({ redirectUrl: "/" });
+    await clerk.signOut({ redirectUrl: siteHref("/") });
   }
 
   const itemClass =
@@ -96,7 +97,7 @@ export function UserMenu({ user }: { user: AdminUser }) {
 
             <div className="border-t border-admin-border py-1">
               <Link
-                href="/admin"
+                href={adminHref("/")}
                 role="menuitem"
                 onClick={() => setOpen(false)}
                 className={itemClass}
@@ -106,7 +107,7 @@ export function UserMenu({ user }: { user: AdminUser }) {
               </Link>
 
               <a
-                href="/"
+                href={siteHref("/")}
                 target="_blank"
                 rel="noreferrer"
                 role="menuitem"

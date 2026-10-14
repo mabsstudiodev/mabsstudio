@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "@clerk/nextjs/server";
 import { SignInForm } from "@/components/auth/sign-in-form";
+import { adminHref } from "@/lib/admin-url";
 
 export const metadata = {
   title: "Sign in",
@@ -19,7 +20,7 @@ export default async function SignInPage({
   const safe =
     redirect_url && redirect_url.startsWith("/") && !redirect_url.startsWith("//")
       ? redirect_url
-      : "/admin";
+      : adminHref("/");
 
   // Already signed in — don't show a form that can only fail, since Clerk
   // won't mint a second session for an identifier that already has one.

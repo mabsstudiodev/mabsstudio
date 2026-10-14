@@ -22,6 +22,7 @@ import {
   type Booking,
   type BookingFilters,
 } from "@/types/admin";
+import { adminHref } from "@/lib/admin-url";
 
 /**
  * Bookings list.
@@ -242,7 +243,7 @@ export function BookingsView({
                     <tr key={booking.id} className="transition-colors hover:bg-paper/60">
                       <td className="px-5 py-3.5">
                         <Link
-                          href={`/admin/bookings/${booking.id}`}
+                          href={adminHref(`/bookings/${booking.id}`)}
                           className="font-medium text-navy hover:underline"
                         >
                           {booking.customerName}
@@ -267,7 +268,7 @@ export function BookingsView({
                           <ActionMenu
                             label={`Actions for ${booking.customerName}`}
                             items={[
-                              { label: "View details", href: `/admin/bookings/${booking.id}` },
+                              { label: "View details", href: adminHref(`/bookings/${booking.id}`) },
                             ]}
                           />
                         </div>
