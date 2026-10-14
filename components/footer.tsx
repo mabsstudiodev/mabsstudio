@@ -114,13 +114,6 @@ export function Footer() {
             >
               Privacy Policy
             </Link>
-            {/* Discreet entry point to the studio's admin dashboard. */}
-            <Link
-              href="/admin"
-              className="transition-colors duration-300 hover:text-royal"
-            >
-              Studio Login
-            </Link>
           </div>
         </div>
       </Container>
