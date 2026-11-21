@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Phone } from "lucide-react";
 import { formatDate, formatTime } from "@/lib/admin/format";
-import { BookingStatusBadge } from "./ui/badge";
+import { BookingStatusBadge, DepositBadge } from "./ui/badge";
 import type { Booking } from "@/types/admin";
 import { adminHref } from "@/lib/admin-url";
 
@@ -27,6 +27,7 @@ export function BookingCard({
             {booking.customerName}
           </Link>
           <BookingStatusBadge status={booking.status} />
+          {booking.deposit ? <DepositBadge deposit={booking.deposit} /> : null}
         </div>
         <p className="mt-0.5 truncate text-sm text-muted">
           {booking.serviceName}

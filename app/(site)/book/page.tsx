@@ -6,7 +6,8 @@ import { PageHero } from "@/components/page-hero";
 import { Reveal } from "@/components/motion";
 import { BookingForm } from "@/components/booking-form";
 import { site, whatsappLink } from "@/lib/site";
-import { getPublicServices } from "@/lib/public-data";
+import { getPublicDepositRules, getPublicServices } from "@/lib/public-data";
+import { depositAmountFor, depositFeeFor, feePercentOf } from "@/convex/lib/deposit";
 
 export const metadata: Metadata = {
   title: "Book Appointment",
@@ -33,7 +34,26 @@ const assurances = [
 ];
 
 export default async function BookPage() {
-  const services = await getPublicServices();
+  const [services, depositRules] = await Promise.all([
+    getPublicServices(),
+    getPublicDepositRules().catch(() => null),
+  ]);
+
+  // The same rule Convex applies when the booking is made, so the figure the
+  // customer sees is the figure they're charged.
+  const feePercent = feePercentOf(depositRules);
+  const deposit = depositRules
+    ? {
+        policy: depositRules.policy,
+        feePercent,
+        charges: Object.fromEntries(
+          services.map((s) => {
+            const amount = depositAmountFor(depositRules, s.depositAmount);
+            return [s.slug, { amount, fee: depositFeeFor(amount, feePercent) }];
+          })
+        ),
+      }
+    : null;
 
   return (
     <>
@@ -95,7 +115,7 @@ export default async function BookPage() {
             <Reveal delay={0.15}>
               <div className="rounded-2xl border border-line bg-white p-7 shadow-soft md:p-10">
                 <Suspense fallback={<p className="text-sm text-muted">Loading booking form…</p>}>
-                  <BookingForm services={services} />
+                  <BookingForm services={services} deposit={deposit} />
                 </Suspense>
               </div>
             </Reveal>

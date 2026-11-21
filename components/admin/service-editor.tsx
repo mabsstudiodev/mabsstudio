@@ -17,9 +17,14 @@ import { MediaField } from "./ui/media-field";
 import { useToast } from "./ui/toast";
 import { serviceSchema, type ServiceFormValues } from "@/lib/admin/schemas";
 import { createService, updateService } from "@/lib/admin/actions";
-import { CATEGORY_LABELS, formatPrice, slugify } from "@/lib/admin/catalog";
+import { CATEGORY_LABELS, formatMoney, formatPrice, slugify } from "@/lib/admin/catalog";
 import { toUserMessage } from "@/lib/admin/data-source";
-import { SERVICE_CATEGORIES, type AdminService, type ServiceCategory } from "@/types/admin";
+import {
+  SERVICE_CATEGORIES,
+  type AdminService,
+  type DepositSettings,
+  type ServiceCategory,
+} from "@/types/admin";
 import { adminHref } from "@/lib/admin-url";
 
 /**
@@ -29,10 +34,13 @@ import { adminHref } from "@/lib/admin-url";
 export function ServiceEditor({
   service,
   nextSortOrder = 0,
+  deposit,
 }: {
   /** Omitted when creating. */
   service?: AdminService;
   nextSortOrder?: number;
+  /** The studio-wide deposit rules, for the deposit field's hint. */
+  deposit: DepositSettings;
 }) {
   const router = useRouter();
   const toast = useToast();
@@ -58,6 +66,7 @@ export function ServiceEditor({
       category: service?.category ?? "nails",
       image: service?.image ?? "",
       video: service?.video ?? "",
+      depositAmount: service?.depositAmount ?? null,
       featured: service?.featured ?? false,
       active: service?.active ?? true,
       sortOrder: service?.sortOrder ?? nextSortOrder,
@@ -78,6 +87,7 @@ export function ServiceEditor({
       ...values,
       category: values.category as ServiceCategory,
       video: values.video?.trim() ? values.video.trim() : undefined,
+      depositAmount: values.depositAmount ?? undefined,
     };
 
     try {
@@ -151,7 +161,7 @@ export function ServiceEditor({
                 </FieldGroup>
 
                 <div className="border-t border-admin-border pt-5">
-                  <FieldGroup title="Pricing and duration">
+                  <FieldGroup title="Pricing, duration, and deposit">
                     <div className="grid gap-4 sm:grid-cols-3">
                       <Field
                         label="Starting price"
@@ -193,6 +203,31 @@ export function ServiceEditor({
                         )}
                       </Field>
                     </div>
+                    <Field
+                      label="Deposit"
+                      hint={
+                        deposit.enabled
+                          ? `GH₵. Leave blank to use the studio default (${formatMoney(deposit.defaultAmount)}). Enter 0 for no deposit.`
+                          : "GH₵. Deposits are off — turn them on in Settings → Deposits. Leave blank to use the default there; 0 means no deposit."
+                      }
+                      error={errors.depositAmount?.message}
+                      className="sm:max-w-xs"
+                    >
+                      {(props) => (
+                        <Input
+                          {...props}
+                          type="number"
+                          min={0}
+                          step="0.01"
+                          inputMode="decimal"
+                          placeholder={String(deposit.defaultAmount)}
+                          {...register("depositAmount", {
+                            setValueAs: (value) =>
+                              value === "" || value === null ? null : Number(value),
+                          })}
+                        />
+                      )}
+                    </Field>
                   </FieldGroup>
                 </div>
 

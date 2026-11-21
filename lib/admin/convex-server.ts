@@ -1,6 +1,6 @@
 import "server-only";
 import { auth } from "@clerk/nextjs/server";
-import { fetchMutation, fetchQuery } from "convex/nextjs";
+import { fetchAction, fetchMutation, fetchQuery } from "convex/nextjs";
 import type { FunctionReference } from "convex/server";
 
 /**
@@ -52,4 +52,11 @@ export async function publicMutation<M extends FunctionReference<"mutation">>(
   args: M["_args"]
 ): Promise<M["_returnType"]> {
   return fetchMutation(reference, args);
+}
+
+export async function publicAction<A extends FunctionReference<"action">>(
+  reference: A,
+  args: A["_args"]
+): Promise<A["_returnType"]> {
+  return fetchAction(reference, args);
 }

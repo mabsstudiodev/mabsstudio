@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "./ui/card";
 import { BookingStatusBadge } from "./ui/badge";
 import { ConfirmDialog } from "./ui/dialog";
+import { DepositCard } from "./deposit-card";
 import { useToast } from "./ui/toast";
 import { deleteBooking, updateBookingStatus } from "@/lib/admin/actions";
 import { toUserMessage } from "@/lib/admin/data-source";
@@ -79,7 +80,14 @@ const STATUS_ACTIONS: StatusAction[] = [
   },
 ];
 
-export function BookingDetail({ booking: initial }: { booking: Booking }) {
+export function BookingDetail({
+  booking: initial,
+  paymentLink,
+}: {
+  booking: Booking;
+  /** Public page where the customer can pay an unpaid deposit. */
+  paymentLink: string;
+}) {
   const router = useRouter();
   const toast = useToast();
   const [booking, setBooking] = React.useState(initial);
@@ -92,9 +100,23 @@ export function BookingDetail({ booking: initial }: { booking: Booking }) {
   async function applyStatus(action: StatusAction) {
     setPendingStatus(action.status);
     try {
-      const updated = await updateBookingStatus(booking.id, action.status);
+      const { booking: updated, customerEmail } = await updateBookingStatus(
+        booking.id,
+        action.status
+      );
       setBooking(updated);
-      toast.success(action.successLabel);
+      if (customerEmail === "sent") {
+        toast.success(action.successLabel, `A confirmation email was sent to ${updated.email}.`);
+      } else if (customerEmail === "failed") {
+        // The status did change; only the email didn't go out.
+        toast.success(action.successLabel);
+        toast.error(
+          "Confirmation email not sent",
+          `Let ${updated.customerName} know by WhatsApp or phone instead.`
+        );
+      } else {
+        toast.success(action.successLabel);
+      }
     } catch (error) {
       toast.error(
         "Status not updated",
@@ -227,8 +249,17 @@ export function BookingDetail({ booking: initial }: { booking: Booking }) {
         </div>
 
         <div className="space-y-6">
+          <DepositCard booking={booking} paymentLink={paymentLink} onUpdated={setBooking} />
+
           <Card>
-            <CardHeader title="Actions" />
+            <CardHeader
+              title="Actions"
+              description={
+                booking.status === "confirmed"
+                  ? undefined
+                  : `Confirming emails ${booking.customerName} at ${booking.email}.`
+              }
+            />
             <CardBody className="space-y-2">
               {STATUS_ACTIONS.map((action) => {
                 const isCurrent = booking.status === action.status;

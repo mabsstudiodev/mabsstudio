@@ -62,17 +62,21 @@ export function sortByAppointment(bookings: Booking[]): Booking[] {
   );
 }
 
-const CSV_COLUMNS = [
-  "id",
-  "customerName",
-  "phone",
-  "email",
-  "serviceName",
-  "date",
-  "time",
-  "status",
-  "notes",
-] as const;
+const CSV_COLUMNS: [header: string, cell: (booking: Booking) => unknown][] = [
+  ["id", (b) => b.id],
+  ["customerName", (b) => b.customerName],
+  ["phone", (b) => b.phone],
+  ["email", (b) => b.email],
+  ["serviceName", (b) => b.serviceName],
+  ["date", (b) => b.date],
+  ["time", (b) => b.time],
+  ["status", (b) => b.status],
+  ["depositStatus", (b) => b.deposit?.status],
+  ["depositAmount", (b) => b.deposit?.amount],
+  ["depositFee", (b) => b.deposit?.fee],
+  ["depositReference", (b) => b.deposit?.reference],
+  ["notes", (b) => b.notes],
+];
 
 function csvCell(value: unknown): string {
   const text = value == null ? "" : String(value);
@@ -81,9 +85,9 @@ function csvCell(value: unknown): string {
 
 /** Serialises real booking records only — never invents rows. */
 export function bookingsToCsv(bookings: Booking[]): string {
-  const header = CSV_COLUMNS.join(",");
+  const header = CSV_COLUMNS.map(([name]) => name).join(",");
   const rows = bookings.map((booking) =>
-    CSV_COLUMNS.map((column) => csvCell(booking[column])).join(",")
+    CSV_COLUMNS.map(([, cell]) => csvCell(cell(booking))).join(",")
   );
   return [header, ...rows].join("\n");
 }

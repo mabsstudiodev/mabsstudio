@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { motion } from "framer-motion";
-import { CalendarCheck, ImagePlus, X } from "lucide-react";
+import { CalendarCheck, ImagePlus, ShieldCheck, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,6 +15,8 @@ import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import type { Service } from "@/lib/services";
 import { site, whatsappLink } from "@/lib/site";
+import { formatMoney } from "@/lib/admin/catalog";
+import { roundMoney } from "@/convex/lib/deposit";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -91,12 +93,31 @@ function fieldError(id: string, message?: string) {
   );
 }
 
-export function BookingForm({ services }: { services: Service[] }) {
+/**
+ * What each service owes up front, keyed by slug: the deposit and the
+ * transaction fee on top. `null` while deposits are off.
+ */
+export type BookingDeposit = {
+  policy: string;
+  feePercent: number;
+  charges: Record<string, { amount: number; fee: number }>;
+} | null;
+
+export function BookingForm({
+  services,
+  deposit,
+}: {
+  services: Service[];
+  deposit: BookingDeposit;
+}) {
   const searchParams = useSearchParams();
   const preselected = searchParams.get("service") ?? "";
   const validPreselect = services.some((s) => s.slug === preselected) ? preselected : "";
 
   const [status, setStatus] = React.useState<"idle" | "success" | "error">("idle");
+  const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
+  // Stays on through the hand-off to Paystack, after the submit itself settles.
+  const [redirecting, setRedirecting] = React.useState(false);
   const [submitted, setSubmitted] = React.useState<BookingValues | null>(null);
   const [inspiration, setInspiration] = React.useState<{ file: File; url: string } | null>(null);
   const [imageSent, setImageSent] = React.useState(false);
@@ -107,6 +128,7 @@ export function BookingForm({ services }: { services: Service[] }) {
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<BookingValues>({
     resolver: zodResolver(bookingSchema),
@@ -118,6 +140,23 @@ export function BookingForm({ services }: { services: Service[] }) {
       if (inspiration) URL.revokeObjectURL(inspiration.url);
     };
   }, [inspiration]);
+
+  // Returning with the browser's back button from Paystack restores this page
+  // from the bfcache with the button still spinning; release it.
+  React.useEffect(() => {
+    const onShow = (event: PageTransitionEvent) => {
+      if (event.persisted) setRedirecting(false);
+    };
+    window.addEventListener("pageshow", onShow);
+    return () => window.removeEventListener("pageshow", onShow);
+  }, []);
+
+  const selectedService = watch("service");
+  const charge = selectedService ? deposit?.charges[selectedService] : undefined;
+  const depositDue = charge?.amount ?? 0;
+  const feeDue = charge?.fee ?? 0;
+  const totalDue = roundMoney(depositDue + feeDue);
+  const busy = isSubmitting || redirecting;
 
   function onFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     setFileError(null);
@@ -143,6 +182,7 @@ export function BookingForm({ services }: { services: Service[] }) {
 
   async function onSubmit(values: BookingValues) {
     setStatus("idle");
+    setErrorMessage(null);
     try {
       const formData = new FormData();
       Object.entries(values).forEach(([key, value]) => {
@@ -151,7 +191,23 @@ export function BookingForm({ services }: { services: Service[] }) {
       if (inspiration) formData.append("inspiration", inspiration.file);
 
       const res = await fetch("/api/book", { method: "POST", body: formData });
-      if (!res.ok) throw new Error("Request failed");
+      const data = (await res.json().catch(() => ({}))) as {
+        error?: string;
+        paymentUrl?: string;
+      };
+      if (!res.ok) {
+        if (data.error) setErrorMessage(data.error);
+        throw new Error("Request failed");
+      }
+
+      // A deposit is owed: Paystack takes it from here and sends the customer
+      // back to /book/payment/<id>, which shows the outcome.
+      if (data.paymentUrl) {
+        setRedirecting(true);
+        window.location.assign(data.paymentUrl);
+        return;
+      }
+
       setImageSent(inspiration !== null);
       setSubmitted(values);
       setStatus("success");
@@ -383,18 +439,49 @@ export function BookingForm({ services }: { services: Service[] }) {
         {fieldError("notes", errors.notes?.message)}
       </div>
 
+      {depositDue > 0 && deposit ? (
+        <div className="rounded-xl border border-line bg-paper p-5">
+          <div className="flex items-start gap-3">
+            <ShieldCheck className="mt-0.5 size-5 shrink-0 text-royal" aria-hidden="true" />
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-navy">
+                A {formatMoney(depositDue)} deposit secures this appointment
+              </p>
+              {feeDue > 0 ? (
+                <p className="mt-1 text-sm text-ink">
+                  {formatMoney(depositDue)} deposit + {formatMoney(feeDue)} transaction fee (
+                  {deposit.feePercent}%) ={" "}
+                  <span className="font-medium">{formatMoney(totalDue)}</span> today
+                </p>
+              ) : null}
+              <p className="mt-1.5 text-sm leading-relaxed text-muted">{deposit.policy}</p>
+              <p className="mt-2 text-xs leading-relaxed text-muted">
+                You&apos;ll pay on Paystack&apos;s secure checkout with mobile money or card. Your
+                payment details go to Paystack, never to this website.
+              </p>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       {status === "error" && (
         <p
           role="alert"
           className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
         >
-          Something went wrong while sending your request. Please try again, or reach us directly
-          on WhatsApp at {site.whatsappPhone}.
+          {errorMessage ?? "Something went wrong while sending your request. Please try again."}{" "}
+          You can also reach us directly on WhatsApp at {site.whatsappPhone}.
         </p>
       )}
 
-      <Button type="submit" size="lg" loading={isSubmitting} className="w-full">
-        {isSubmitting ? "Sending request…" : "Request Appointment"}
+      <Button type="submit" size="lg" loading={busy} className="w-full">
+        {busy
+          ? depositDue > 0
+            ? "Opening secure payment…"
+            : "Sending request…"
+          : depositDue > 0
+            ? `Continue to pay ${formatMoney(totalDue)}`
+            : "Request Appointment"}
       </Button>
       <p className="text-center text-xs leading-relaxed text-muted">
         Appointments are confirmed personally via WhatsApp or phone. Your details are used only to

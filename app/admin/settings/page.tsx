@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/admin/page-header";
 import { SettingsForm } from "@/components/admin/settings-form";
-import { getBusinessSettings } from "@/lib/admin/settings";
+import { getBusinessSettings, getPaymentsConfig } from "@/lib/admin/settings";
+import { site } from "@/lib/site";
 import { canEditSettings, getAdminUser } from "@/lib/admin/auth";
 
 export const metadata = { title: "Settings" };
@@ -11,15 +12,23 @@ export default async function SettingsPage() {
   // Owner-only, matching the sidebar. Never rely on hiding a link alone.
   if (!user || !canEditSettings(user.role)) notFound();
 
-  const settings = await getBusinessSettings();
+  const [settings, payments] = await Promise.all([
+    getBusinessSettings(),
+    getPaymentsConfig(),
+  ]);
 
   return (
     <>
       <PageHeader
         title="Settings"
-        description="Business details, contact information, hours, and booking rules."
+        description="Business details, contact information, hours, booking rules, and deposits."
       />
-      <SettingsForm settings={settings} />
+      <SettingsForm
+        settings={settings}
+        payments={payments}
+        // The webhook lands on the public site, never the admin subdomain.
+        webhookUrl={`${site.url}/api/paystack/webhook`}
+      />
     </>
   );
 }

@@ -1,6 +1,8 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { recordActivity, requireOwner } from "./lib/auth";
+import { MAX_FEE_PERCENT, feePercentOf, roundMoney } from "./lib/deposit";
+import { paymentsConfigured } from "./lib/paystack";
 
 /**
  * Business settings — a single row, created on first save.
@@ -59,12 +61,20 @@ const social = v.object({
   x: v.string(),
 });
 
+const deposit = v.object({
+  enabled: v.boolean(),
+  defaultAmount: v.number(),
+  feePercent: v.number(),
+  policy: v.string(),
+});
+
 const SECTION_SUMMARIES = {
   business: "Updated the business information",
   contact: "Updated the contact details",
   hours: "Updated the opening hours",
   booking: "Updated the booking settings",
   social: "Updated the social links",
+  deposit: "Updated the deposit settings",
 } as const;
 
 /** Public — the footer, contact page, and booking form read this. */
@@ -79,6 +89,7 @@ export const get = query({
       hours: row.hours,
       booking: row.booking,
       social: row.social,
+      deposit: row.deposit,
     };
   },
 });
@@ -95,6 +106,19 @@ export const getBookingRules = query({
   },
 });
 
+/**
+ * Public read of the deposit rules, so the booking form can show what a
+ * service owes before the customer submits. `null` means deposits are off.
+ */
+export const getDepositRules = query({
+  args: {},
+  handler: async (ctx) => {
+    const row = await ctx.db.query("businessSettings").first();
+    if (!row?.deposit?.enabled) return null;
+    return { ...row.deposit, feePercent: feePercentOf(row.deposit) };
+  },
+});
+
 export const save = mutation({
   args: {
     business,
@@ -102,16 +126,44 @@ export const save = mutation({
     hours,
     booking,
     social,
+    deposit: v.optional(deposit),
     section: v.union(
       v.literal("business"),
       v.literal("contact"),
       v.literal("hours"),
       v.literal("booking"),
-      v.literal("social")
+      v.literal("social"),
+      v.literal("deposit")
     ),
   },
   handler: async (ctx, { section, ...sections }) => {
     const actor = await requireOwner(ctx);
+
+    if (section === "deposit" && sections.deposit) {
+      const { enabled, defaultAmount, feePercent } = sections.deposit;
+      if (!Number.isFinite(defaultAmount) || defaultAmount < 0) {
+        throw new Error("Enter a deposit amount of zero or more");
+      }
+      if (!Number.isFinite(feePercent) || feePercent < 0 || feePercent > MAX_FEE_PERCENT) {
+        throw new Error(`The transaction fee must be between 0% and ${MAX_FEE_PERCENT}%`);
+      }
+      if (enabled && defaultAmount < 1) {
+        throw new Error("The default deposit must be at least GH₵1");
+      }
+      // Turning deposits on without Paystack would block every booking, so
+      // refuse it here rather than let customers hit a broken checkout.
+      if (enabled && !paymentsConfigured()) {
+        throw new Error(
+          "Connect Paystack before requiring deposits — see the setup steps on this page"
+        );
+      }
+      sections.deposit = {
+        ...sections.deposit,
+        defaultAmount: roundMoney(defaultAmount),
+        // Two decimals is plenty for a percentage, e.g. 1.95.
+        feePercent: roundMoney(feePercent),
+      };
+    }
     const row = await ctx.db.query("businessSettings").first();
 
     const id = row

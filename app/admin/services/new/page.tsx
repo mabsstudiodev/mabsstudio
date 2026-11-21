@@ -1,12 +1,13 @@
 import { PageHeader } from "@/components/admin/page-header";
 import { ServiceEditor } from "@/components/admin/service-editor";
 import { getServices } from "@/lib/admin/services";
+import { getBusinessSettings } from "@/lib/admin/settings";
 
 export const metadata = { title: "New service" };
 
 export default async function NewServicePage() {
   // Places the new service at the end of the current running order.
-  const services = await getServices();
+  const [services, settings] = await Promise.all([getServices(), getBusinessSettings()]);
 
   return (
     <>
@@ -14,7 +15,7 @@ export default async function NewServicePage() {
         title="Add service"
         description="Create a treatment for the services page and homepage grid."
       />
-      <ServiceEditor nextSortOrder={services.length} />
+      <ServiceEditor nextSortOrder={services.length} deposit={settings.deposit} />
     </>
   );
 }

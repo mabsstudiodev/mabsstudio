@@ -26,6 +26,34 @@ export const serviceCategory = v.union(
   v.literal("other")
 );
 
+/**
+ * A booking's deposit. Absent when none was owed — older bookings, services
+ * exempted with a `0` amount, or deposits switched off at the time.
+ */
+export const depositStatus = v.union(
+  v.literal("unpaid"),
+  v.literal("paid"),
+  v.literal("waived"),
+  v.literal("refunded")
+);
+
+const bookingDeposit = v.object({
+  /** What was owed, in cedis, fixed when the booking was made. */
+  amount: v.number(),
+  /**
+   * Transaction fee charged on top, in cedis, fixed alongside the amount.
+   * Paystack charges `amount + fee`. Absent on bookings made before fees.
+   */
+  fee: v.optional(v.number()),
+  currency: v.string(),
+  status: depositStatus,
+  /** The latest Paystack transaction started for this booking. */
+  reference: v.optional(v.string()),
+  paidAt: v.optional(v.number()),
+  /** Paystack's channel (`card`, `mobile_money`, …) or `manual`. */
+  channel: v.optional(v.string()),
+});
+
 const dayHours = v.object({
   open: v.boolean(),
   from: v.string(),
@@ -46,6 +74,7 @@ export default defineSchema({
     notes: v.optional(v.string()),
     inspirationImage: v.optional(v.id("_storage")),
     status: bookingStatus,
+    deposit: v.optional(bookingDeposit),
   })
     // Powers "today's bookings" and every date-range filter.
     .index("by_date", ["date"])
@@ -64,6 +93,8 @@ export default defineSchema({
     category: serviceCategory,
     image: v.string(),
     video: v.optional(v.string()),
+    /** Overrides the studio's default deposit, in cedis. `0` exempts it. */
+    depositAmount: v.optional(v.number()),
     featured: v.boolean(),
     active: v.boolean(),
     sortOrder: v.number(),
@@ -164,6 +195,17 @@ export default defineSchema({
       facebook: v.string(),
       x: v.string(),
     }),
+    // Optional so the row saved before deposits existed stays valid. Absent
+    // reads as "deposits off".
+    deposit: v.optional(
+      v.object({
+        enabled: v.boolean(),
+        defaultAmount: v.number(),
+        // Percent of the deposit, added on top. Absent means the 2% default.
+        feePercent: v.optional(v.number()),
+        policy: v.string(),
+      })
+    ),
   }),
 
   // No explicit index: Convex appends `_creationTime` to every index itself,

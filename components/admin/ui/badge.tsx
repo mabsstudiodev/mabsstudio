@@ -1,6 +1,13 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
-import { BOOKING_STATUS_LABELS, type BookingStatus } from "@/types/admin";
+import { formatMoney } from "@/lib/admin/catalog";
+import {
+  BOOKING_STATUS_LABELS,
+  DEPOSIT_STATUS_LABELS,
+  type BookingDeposit,
+  type BookingStatus,
+  type DepositStatus,
+} from "@/types/admin";
 
 /**
  * Restrained status treatment: a tinted pill with a solid dot, so status is
@@ -74,6 +81,28 @@ export function BookingStatusBadge({
   return (
     <Badge tone={STATUS_TONES[status]} dot className={className}>
       {BOOKING_STATUS_LABELS[status]}
+    </Badge>
+  );
+}
+
+const DEPOSIT_TONES: Record<DepositStatus, BadgeTone> = {
+  unpaid: "warning",
+  paid: "positive",
+  waived: "neutral",
+  refunded: "neutral",
+};
+
+/** Deposit state with its amount, e.g. "Deposit paid · GH₵50". */
+export function DepositBadge({
+  deposit,
+  className,
+}: {
+  deposit: BookingDeposit;
+  className?: string;
+}) {
+  return (
+    <Badge tone={DEPOSIT_TONES[deposit.status]} dot className={className}>
+      {DEPOSIT_STATUS_LABELS[deposit.status]} · {formatMoney(deposit.amount, deposit.currency)}
     </Badge>
   );
 }

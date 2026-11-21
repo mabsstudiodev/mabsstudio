@@ -23,6 +23,7 @@ function toClient(service: Doc<"services">) {
     category: service.category,
     image: service.image,
     video: service.video,
+    depositAmount: service.depositAmount,
     featured: service.featured,
     active: service.active,
     sortOrder: service.sortOrder,
@@ -39,6 +40,7 @@ const serviceFields = {
   category: serviceCategory,
   image: v.string(),
   video: v.optional(v.string()),
+  depositAmount: v.optional(v.number()),
   featured: v.boolean(),
   active: v.boolean(),
   sortOrder: v.number(),
@@ -101,6 +103,9 @@ export const create = mutation({
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
       .unique();
     if (clash) throw new Error("A service with that slug already exists");
+    if (args.depositAmount !== undefined && !(args.depositAmount >= 0)) {
+      throw new Error("Deposit cannot be negative");
+    }
 
     const id = await ctx.db.insert("services", args);
     await recordActivity(ctx, actor, {
@@ -129,7 +134,18 @@ export const update = mutation({
       if (clash) throw new Error("A service with that slug already exists");
     }
 
-    await ctx.db.patch(id, fields);
+    if (fields.depositAmount !== undefined && !(fields.depositAmount >= 0)) {
+      throw new Error("Deposit cannot be negative");
+    }
+
+    // Optional fields are dropped from the arguments when cleared, so name
+    // them explicitly: `undefined` in a patch removes the stored value, which
+    // is what clearing the video or the deposit override means.
+    await ctx.db.patch(id, {
+      ...fields,
+      video: fields.video,
+      depositAmount: fields.depositAmount,
+    });
     await recordActivity(ctx, actor, {
       action: "service.updated",
       entity: "service",

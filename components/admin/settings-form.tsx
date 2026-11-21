@@ -6,9 +6,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Building2,
   CalendarCog,
+  CircleAlert,
+  CircleCheck,
   Clock,
   Phone,
   Share2,
+  Wallet,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +25,7 @@ import {
   businessHoursSchema,
   businessInfoSchema,
   contactInfoSchema,
+  depositSettingsSchema,
   socialLinksSchema,
 } from "@/lib/admin/schemas";
 import {
@@ -29,9 +33,12 @@ import {
   updateBusinessHours,
   updateBusinessInfo,
   updateContactInfo,
+  updateDepositSettings,
   updateSocialLinks,
 } from "@/lib/admin/actions";
 import { toUserMessage } from "@/lib/admin/data-source";
+import { formatMoney } from "@/lib/admin/catalog";
+import { MAX_FEE_PERCENT, depositFeeFor, roundMoney } from "@/convex/lib/deposit";
 import {
   WEEK_DAYS,
   type BookingSettings,
@@ -39,6 +46,8 @@ import {
   type BusinessInfo,
   type BusinessSettings,
   type ContactInfo,
+  type DepositSettings,
+  type PaymentsConfig,
   type SocialLinks,
 } from "@/types/admin";
 
@@ -47,6 +56,7 @@ const TABS: TabDefinition[] = [
   { id: "contact", label: "Contact", icon: Phone },
   { id: "hours", label: "Hours", icon: Clock },
   { id: "booking", label: "Booking", icon: CalendarCog },
+  { id: "deposit", label: "Deposits", icon: Wallet },
   { id: "social", label: "Social", icon: Share2 },
 ];
 
@@ -54,7 +64,16 @@ const TABS: TabDefinition[] = [
  * Settings, split into one form per section so a save touches only what the
  * admin actually edited — never one giant form posting everything at once.
  */
-export function SettingsForm({ settings }: { settings: BusinessSettings }) {
+export function SettingsForm({
+  settings,
+  payments,
+  webhookUrl,
+}: {
+  settings: BusinessSettings;
+  /** `null` when the payments backend couldn't be reached. */
+  payments: PaymentsConfig | null;
+  webhookUrl: string;
+}) {
   const [active, setActive] = React.useState("business");
 
   return (
@@ -72,6 +91,9 @@ export function SettingsForm({ settings }: { settings: BusinessSettings }) {
       </TabPanel>
       <TabPanel id="booking" active={active}>
         <BookingSection value={settings.booking} />
+      </TabPanel>
+      <TabPanel id="deposit" active={active}>
+        <DepositSection value={settings.deposit} payments={payments} webhookUrl={webhookUrl} />
       </TabPanel>
       <TabPanel id="social" active={active}>
         <SocialSection value={settings.social} />
@@ -421,6 +443,198 @@ function BookingSection({ value }: { value: BookingSettings }) {
         />
       </Card>
     </form>
+  );
+}
+
+function DepositSection({
+  value,
+  payments,
+  webhookUrl,
+}: {
+  value: DepositSettings;
+  payments: PaymentsConfig | null;
+  webhookUrl: string;
+}) {
+  const toast = useToast();
+  const {
+    register,
+    handleSubmit,
+    watch,
+    reset,
+    formState: { errors, isSubmitting, isDirty },
+  } = useForm<DepositSettings>({
+    resolver: zodResolver(depositSettingsSchema),
+    defaultValues: value,
+  });
+
+  const enabled = watch("enabled");
+  const connected = payments?.configured ?? false;
+
+  // A worked example under the fee field, from what's typed right now.
+  const exampleAmount = Number(watch("defaultAmount")) || 0;
+  const exampleFee = depositFeeFor(exampleAmount, Number(watch("feePercent")) || 0);
+
+  async function onSubmit(values: DepositSettings) {
+    try {
+      const saved = await updateDepositSettings(values);
+      reset(saved);
+      toast.success(
+        saved.enabled ? "Deposits are on." : "Deposit settings saved.",
+        saved.enabled
+          ? "New bookings now ask for a deposit before they reach you."
+          : undefined
+      );
+    } catch (error) {
+      toast.error(
+        "Settings not saved",
+        toUserMessage(error, "We couldn't save these settings. Please try again.")
+      );
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} noValidate>
+      <Card>
+        <CardHeader
+          title="Booking deposits"
+          description="Ask customers to pay a deposit through Paystack when they book, so a slot isn't held for someone who never shows up."
+        />
+        <CardBody className="space-y-5">
+          <PaystackStatus payments={payments} />
+
+          <CheckboxField
+            label="Require a deposit to book"
+            description="Customers pay on Paystack's checkout (mobile money or card) before their request reaches you. Requests that aren't paid still show in Bookings, marked “Deposit unpaid”."
+            {...register("enabled")}
+          />
+
+          <div className="grid gap-4 border-t border-admin-border pt-4 sm:grid-cols-[12rem_1fr]">
+            <Field
+              label="Default deposit"
+              hint="GH₵, per booking"
+              required
+              error={errors.defaultAmount?.message}
+            >
+              {(props) => (
+                <Input
+                  {...props}
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  inputMode="decimal"
+                  {...register("defaultAmount", { valueAsNumber: true })}
+                />
+              )}
+            </Field>
+            <p className="self-center text-sm leading-relaxed text-muted">
+              Applies to every service. To charge a service a different amount — or nothing at
+              all — set its own deposit under{" "}
+              <span className="font-medium text-ink">Services</span>.
+            </p>
+
+            <Field
+              label="Transaction fee"
+              hint="% of the deposit"
+              required
+              error={errors.feePercent?.message}
+            >
+              {(props) => (
+                <Input
+                  {...props}
+                  type="number"
+                  min={0}
+                  max={MAX_FEE_PERCENT}
+                  step="0.01"
+                  inputMode="decimal"
+                  {...register("feePercent", { valueAsNumber: true })}
+                />
+              )}
+            </Field>
+            <div className="self-center text-sm leading-relaxed text-muted">
+              <p>
+                Added on top of the deposit to cover Paystack&apos;s charges. Enter 0 to absorb
+                the fee yourself.
+              </p>
+              {exampleAmount > 0 ? (
+                <p className="mt-1">
+                  A {formatMoney(exampleAmount)} deposit means customers pay{" "}
+                  <span className="font-medium text-ink">
+                    {formatMoney(roundMoney(exampleAmount + exampleFee))}
+                  </span>
+                  {exampleFee > 0 ? ` (${formatMoney(exampleFee)} fee)` : " (no fee)"}.
+                </p>
+              ) : null}
+            </div>
+          </div>
+
+          <Field
+            label="Deposit policy"
+            required
+            hint="Shown beside the deposit on the booking form and on the payment page. Say whether it comes off the final price and when it's refundable."
+            error={errors.policy?.message}
+          >
+            {(props) => <Textarea {...props} rows={3} {...register("policy")} />}
+          </Field>
+
+          {enabled && !connected ? (
+            <p className="flex items-start gap-2 rounded-admin border border-amber-200 bg-amber-50 px-3 py-2.5 text-sm text-amber-800">
+              <CircleAlert aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
+              Paystack isn&apos;t connected, so customers couldn&apos;t pay. Connect it before
+              turning deposits on.
+            </p>
+          ) : null}
+
+          <div className="border-t border-admin-border pt-4">
+            <p className="text-sm font-semibold text-navy">Paystack webhook</p>
+            <p className="mt-1 text-sm leading-relaxed text-muted">
+              In the Paystack dashboard, open Settings → API Keys &amp; Webhooks and set the
+              webhook URL to the address below. It confirms payments for customers who close the
+              page before returning to the site.
+            </p>
+            <code className="mt-2 block break-all rounded-admin border border-admin-border bg-paper px-3 py-2 font-mono text-xs text-ink">
+              {webhookUrl}
+            </code>
+          </div>
+        </CardBody>
+        <SaveRow isSubmitting={isSubmitting} isDirty={isDirty} label="Save deposit settings" />
+      </Card>
+    </form>
+  );
+}
+
+function PaystackStatus({ payments }: { payments: PaymentsConfig | null }) {
+  if (payments?.configured) {
+    return (
+      <div className="flex items-start gap-2 rounded-admin border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-sm text-emerald-800">
+        <CircleCheck aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
+        {payments.mode === "live" ? (
+          <p>
+            Paystack is connected in <span className="font-semibold">live mode</span>. Payments
+            are real.
+          </p>
+        ) : (
+          <p>
+            Paystack is connected in <span className="font-semibold">test mode</span>. Use
+            Paystack&apos;s test cards and numbers; no real money moves.
+          </p>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-start gap-2 rounded-admin border border-admin-border bg-paper px-3 py-2.5 text-sm text-muted">
+      <CircleAlert aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-amber-600" />
+      <p>
+        {payments === null
+          ? "Couldn't check the Paystack connection."
+          : "Paystack isn't connected yet."}{" "}
+        It&apos;s set on the Convex deployment rather than here: add{" "}
+        <code className="font-mono text-xs text-ink">PAYSTACK_SECRET_KEY</code> and{" "}
+        <code className="font-mono text-xs text-ink">SITE_URL</code> as environment variables
+        (see DEPLOY.md), then reload this page.
+      </p>
+    </div>
   );
 }
 

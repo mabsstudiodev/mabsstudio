@@ -15,7 +15,7 @@ const sections = [
     title: "Information we collect",
     body: [
       "When you request an appointment or contact the studio, we collect the details you provide: your name, phone number, email address, the service you're interested in, your preferred date and time, any notes you add, and any inspiration images you choose to share.",
-      "We do not collect payment details through this website. The site does not use advertising trackers.",
+      "Where a booking needs a deposit, you pay it on Paystack's secure checkout. Your card or mobile money details go to Paystack, not to this website; we receive only the payment's amount, status, and reference. The site does not use advertising trackers.",
     ],
   },
   {

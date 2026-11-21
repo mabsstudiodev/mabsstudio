@@ -59,7 +59,17 @@ The Next.js route guard is convenience only — anyone holding a token can call 
 Convex function directly, so the real check lives in Convex.
 
 `bookings.create` is deliberately unauthenticated so the public form can call
-it. It accepts no status field and always writes `pending`.
+it. It accepts no status field and always writes `pending`. It also works out
+the booking's deposit from the stored settings and service, so a caller can't
+choose the price.
+
+`payments.startCheckout`, `payments.confirm`, and `payments.handleWebhook` are
+public actions, but none of them trusts its caller. `startCheckout` charges
+only what the booking already owes. `confirm` asks Paystack itself whether the
+money arrived. `handleWebhook` checks Paystack's signature with the secret key
+that only Convex holds. The only write that marks a deposit paid is
+`internal.payments.markPaid`, and it runs after that check. Setup is in
+`DEPLOY.md` §7.
 
 ### Single-row tables
 
@@ -104,12 +114,15 @@ that handled before I change it.
 | `schema.ts` | 7 tables with indexes. No `users` table — roles live in Clerk. |
 | `lib/auth.ts` | `requireManager` / `requireOwner` / `recordActivity` |
 | `auth.config.ts` | Trusts JWTs from your Clerk instance |
-| `bookings.ts` | list, getById, listToday, listUpcoming, stats, create, updateStatus, remove |
+| `bookings.ts` | list, getById, listToday, listUpcoming, stats, create, updateStatus, setDepositStatus, remove |
+| `payments.ts` | startCheckout, confirm, handleWebhook, configuration; internal bookingForPayment, saveReference, markPaid |
+| `lib/paystack.ts` | Paystack API client and webhook signature check. Reads `PAYSTACK_SECRET_KEY` and `SITE_URL` |
+| `lib/deposit.ts` | Pure deposit maths, shared with the booking form so the figure shown is the figure charged |
 | `services.ts` | listActive, list, getById, getBySlug, create, update, remove, toggleActive, duplicate, reorder |
 | `gallery.ts` | listActive, list, getById, generateUploadUrl, create, update, remove, toggleActive, reorder |
 | `testimonials.ts` | listPublished, list, getById, create, update, remove, setStatus, setFeatured |
 | `siteContent.ts` | get, save |
-| `businessSettings.ts` | get, getBookingRules, save |
+| `businessSettings.ts` | get, getBookingRules, getDepositRules, save |
 | `activity.ts` | list |
 
 Deletes clean up storage: removing a booking or gallery item also deletes its

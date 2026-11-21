@@ -49,6 +49,41 @@ export const BOOKING_STATUS_LABELS: Record<BookingStatus, string> = {
   no_show: "No-show",
 };
 
+export type DepositStatus = "unpaid" | "paid" | "waived" | "refunded";
+
+export const DEPOSIT_STATUS_LABELS: Record<DepositStatus, string> = {
+  unpaid: "Deposit unpaid",
+  paid: "Deposit paid",
+  waived: "Deposit waived",
+  refunded: "Deposit refunded",
+};
+
+/** Paystack's channel names, plus `manual` for deposits recorded by hand. */
+export const PAYMENT_CHANNEL_LABELS: Record<string, string> = {
+  card: "Card",
+  mobile_money: "Mobile money",
+  bank: "Bank",
+  bank_transfer: "Bank transfer",
+  ussd: "USSD",
+  qr: "QR",
+  apple_pay: "Apple Pay",
+  manual: "Recorded by hand",
+};
+
+export type BookingDeposit = {
+  /** What was owed, in cedis, fixed when the booking was made. */
+  amount: number;
+  /** Transaction fee charged on top, in cedis. Absent on older bookings. */
+  fee?: number;
+  currency: string;
+  status: DepositStatus;
+  /** Latest Paystack transaction reference for this booking. */
+  reference?: string;
+  /** Epoch milliseconds. */
+  paidAt?: number;
+  channel?: string;
+};
+
 export type Booking = {
   id: string;
   customerName: string;
@@ -64,6 +99,8 @@ export type Booking = {
   /** Convex storage id or URL once file storage is connected. */
   inspirationImage?: string;
   status: BookingStatus;
+  /** Absent when no deposit was owed. */
+  deposit?: BookingDeposit;
   /** Epoch milliseconds. */
   createdAt: number;
   updatedAt: number;
@@ -119,6 +156,8 @@ export type AdminService = {
   category: ServiceCategory;
   image: string;
   video?: string;
+  /** Overrides the studio's default deposit, in cedis. `0` exempts the service. */
+  depositAmount?: number;
   featured: boolean;
   active: boolean;
   sortOrder: number;
@@ -257,12 +296,31 @@ export type BookingSettings = {
   confirmationMessage: string;
 };
 
+export type DepositSettings = {
+  /** When on, a booking isn't sent to the studio until its deposit is paid. */
+  enabled: boolean;
+  /** In cedis. A service can override it. */
+  defaultAmount: number;
+  /** Transaction fee charged on top of the deposit, as a % of it. `0` for none. */
+  feePercent: number;
+  /** Shown to the customer on the booking form and the payment page. */
+  policy: string;
+};
+
 export type BusinessSettings = {
   business: BusinessInfo;
   contact: ContactInfo;
   hours: BusinessHours;
   booking: BookingSettings;
   social: SocialLinks;
+  deposit: DepositSettings;
+};
+
+/** Whether Paystack is connected on the Convex deployment. */
+export type PaymentsConfig = {
+  configured: boolean;
+  mode: "live" | "test" | null;
+  siteUrl: string | null;
 };
 
 /* -------------------------------------------------------------- activity */
@@ -274,6 +332,8 @@ export type ActivityAction =
   | "booking.cancelled"
   | "booking.no_show"
   | "booking.deleted"
+  | "booking.deposit_paid"
+  | "booking.deposit_updated"
   | "service.created"
   | "service.updated"
   | "service.deleted"

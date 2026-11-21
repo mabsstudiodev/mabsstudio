@@ -109,6 +109,11 @@ on every query.
 - Submit a test booking on `/book`, then confirm it appears in
   `/admin/bookings` **and** that the email arrives. That exercises both halves
   of the endpoint.
+- Open the booking and press **Confirm booking**. The customer's address (use
+  your own for the test) should receive a "Your appointment is confirmed"
+  email. It is sent once, only when the status changes to confirmed, from the
+  same Gmail account, with replies going to the studio's contact email in
+  Settings. If the deposit is still unpaid, the email includes a payment link.
 
 ## 6. Admin subdomain (`admin.mabsstudiogh.com`)
 
@@ -130,6 +135,67 @@ instance covers subdomains of its domain.
 
 To try it locally, build with `NEXT_PUBLIC_ADMIN_HOST=admin.localhost` and
 open `http://admin.localhost:3000`.
+
+## 7. Booking deposits (Paystack)
+
+Deposits are off until the owner turns them on in **Settings → Deposits**, and
+Convex refuses to turn them on until Paystack is connected. Connecting it is
+three steps. The secret key goes on **Convex**, not Vercel: Paystack is only
+ever called from `convex/payments.ts`.
+
+**1. Keys.** Paystack dashboard → Settings → API Keys & Webhooks. Each Convex
+deployment gets its own key, so dev runs in test mode and production runs live:
+
+```bash
+# dev deployment, for local work. Test key, so no real money moves
+npx convex env set PAYSTACK_SECRET_KEY sk_test_...
+npx convex env set SITE_URL http://localhost:3000
+
+# production
+npx convex env set --prod PAYSTACK_SECRET_KEY sk_live_...
+npx convex env set --prod SITE_URL https://www.mabsstudiogh.com
+```
+
+`SITE_URL` is where Paystack returns the customer after paying
+(`/book/payment/<booking id>`). It is read from the environment, never from
+the request, so nobody can start a checkout in the studio's name that
+returns somewhere else.
+
+**2. Webhook.** Same Paystack page, set the **live** webhook URL to
+`https://www.mabsstudiogh.com/api/paystack/webhook` — with `www`, because the
+bare domain answers with a redirect, which Paystack does not follow. It confirms payments for
+customers who close the tab before Paystack redirects them back. Test mode
+cannot reach `localhost`, so locally the return page does all the confirming,
+which is enough to test the whole flow.
+
+**3. Turn it on.** Settings → Deposits: tick *Require a deposit to book*, set
+the default amount and the policy text, and save. A service can override the
+amount, or opt out with `0`, under Services → edit → *Deposit*.
+
+The same screen sets a **transaction fee**, a percentage of the deposit added
+on top to cover Paystack's charges. It defaults to **2%**, so a GH₵50
+deposit charges the customer GH₵51. Set it to `0` to absorb the fee. Like the
+deposit, the fee is fixed on each booking when it is made, so changing it
+later doesn't alter what existing bookings owe.
+
+What happens next:
+
+- The booking form shows the deposit for the chosen service, and submitting
+  sends the customer to Paystack's checkout (mobile money or card).
+- The booking is recorded at once as **Deposit unpaid**. The studio email is
+  sent only after payment, so the inbox gets no abandoned checkouts.
+- The amount is fixed inside Convex when the booking is made, and a payment
+  counts only if Paystack confirms the same booking id and the full amount.
+- Paying the deposit doesn't confirm the appointment. The studio still
+  confirms each booking, because nothing stops two customers paying for the
+  same slot.
+- A booking's Deposit card lets the studio copy or WhatsApp the payment link,
+  re-check Paystack, mark a deposit paid by hand, waive it, or record a
+  refund. Refunds themselves are issued in the Paystack dashboard.
+
+To test, use Paystack's test cards or test mobile money numbers against the
+dev deployment, and check that the booking shows **Deposit paid** and that the
+email arrives.
 
 ## Notes
 

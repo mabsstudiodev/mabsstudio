@@ -49,6 +49,12 @@ export function formatPrice(amount: number | null, currency = "GHS"): string {
   return `Starting from ${symbol}${amount}`;
 }
 
+/** An exact amount, e.g. a deposit: `GH₵50`, `GH₵37.50`. */
+export function formatMoney(amount: number, currency = "GHS"): string {
+  const symbol = currency === "GHS" ? "GH₵" : `${currency} `;
+  return `${symbol}${Number.isInteger(amount) ? amount : amount.toFixed(2)}`;
+}
+
 export function slugify(value: string): string {
   return value
     .toLowerCase()

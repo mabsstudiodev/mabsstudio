@@ -9,7 +9,7 @@ import { Select } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Card } from "./ui/card";
 import { EmptyState } from "./ui/states";
-import { BookingStatusBadge } from "./ui/badge";
+import { BookingStatusBadge, DepositBadge } from "./ui/badge";
 import { ActionMenu } from "./ui/action-menu";
 import { useToast } from "./ui/toast";
 import { BookingCard } from "./booking-card";
@@ -232,6 +232,7 @@ export function BookingsView({
                     <th scope="col" className="px-5 py-3 font-medium">Date</th>
                     <th scope="col" className="px-5 py-3 font-medium">Time</th>
                     <th scope="col" className="px-5 py-3 font-medium">Status</th>
+                    <th scope="col" className="px-5 py-3 font-medium">Deposit</th>
                     <th scope="col" className="px-5 py-3 font-medium">Created</th>
                     <th scope="col" className="px-5 py-3 font-medium">
                       <span className="sr-only">Actions</span>
@@ -259,6 +260,16 @@ export function BookingsView({
                       </td>
                       <td className="px-5 py-3.5">
                         <BookingStatusBadge status={booking.status} />
+                      </td>
+                      <td className="px-5 py-3.5">
+                        {booking.deposit ? (
+                          <DepositBadge deposit={booking.deposit} />
+                        ) : (
+                          <span className="text-muted">
+                            <span aria-hidden="true">—</span>
+                            <span className="sr-only">None</span>
+                          </span>
+                        )}
                       </td>
                       <td className="px-5 py-3.5 text-muted">
                         {formatRelative(booking.createdAt)}

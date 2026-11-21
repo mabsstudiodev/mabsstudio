@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { SERVICE_CATEGORIES } from "@/types/admin";
+import { MAX_FEE_PERCENT } from "@/convex/lib/deposit";
 
 /**
  * Validation shared by the admin forms.
@@ -54,6 +55,11 @@ export const serviceSchema = z.object({
   category: z.enum(SERVICE_CATEGORIES as [string, ...string[]]),
   image: mediaPath,
   video: z.string().trim().max(300).optional(),
+  depositAmount: z
+    .number({ message: "Enter an amount, or leave blank to use the default deposit" })
+    .min(0, "Deposit cannot be negative")
+    .max(100000)
+    .nullable(),
   featured: z.boolean(),
   active: z.boolean(),
   sortOrder: z.number().int().min(0).max(999),
@@ -184,3 +190,21 @@ export const socialLinksSchema = z.object({
   facebook: optionalUrl,
   x: optionalUrl,
 });
+
+export const depositSettingsSchema = z
+  .object({
+    enabled: z.boolean(),
+    defaultAmount: z
+      .number({ message: "Enter an amount in cedis" })
+      .min(0, "Cannot be negative")
+      .max(100000),
+    feePercent: z
+      .number({ message: "Enter a percentage, or 0 for no fee" })
+      .min(0, "Cannot be negative")
+      .max(MAX_FEE_PERCENT, `The fee can be at most ${MAX_FEE_PERCENT}%`),
+    policy: z.string().trim().min(10, "Tell customers how the deposit works").max(500),
+  })
+  .refine((value) => !value.enabled || value.defaultAmount >= 1, {
+    message: "The deposit must be at least GH₵1",
+    path: ["defaultAmount"],
+  });

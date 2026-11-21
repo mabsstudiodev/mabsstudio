@@ -5,8 +5,11 @@ import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { mutation, query } from "./convex-server";
 import { PUBLIC_TAGS } from "@/lib/public-data";
+import { confirmDeposit } from "@/lib/payments";
+import { sendConfirmationEmail } from "@/lib/booking-email";
+import { site } from "@/lib/site";
 import { fallbackContent } from "./content";
-import { fallbackSettings } from "./settings";
+import { fallbackSettings, withDefaults } from "./settings";
 import type {
   AboutContent,
   AdminGalleryItem,
@@ -14,9 +17,12 @@ import type {
   Booking,
   BookingSettings,
   BookingStatus,
+  BusinessSettings,
   BusinessHours,
   BusinessInfo,
   ContactInfo,
+  DepositSettings,
+  DepositStatus,
   HeroContent,
   ServiceCategory,
   SocialLinks,
@@ -35,17 +41,89 @@ import type {
 
 /* ------------------------------------------------------------------ bookings */
 
+export type StatusUpdate = {
+  booking: Booking;
+  /**
+   * The customer's confirmation email. `not_sent` unless this call moved the
+   * booking to confirmed; `failed` means the status changed but Gmail didn't
+   * take the message, so the studio should tell the customer another way.
+   */
+  customerEmail: "sent" | "failed" | "not_sent";
+};
+
 export async function updateBookingStatus(
   id: string,
   status: BookingStatus
-): Promise<Booking> {
-  const booking = await mutation(api.bookings.updateStatus, {
+): Promise<StatusUpdate> {
+  const { booking, changed } = await mutation(api.bookings.updateStatus, {
     id: id as Id<"bookings">,
     status,
   });
+  revalidateBooking(id);
+
+  // Only on the change itself, so confirming twice never emails twice.
+  if (!changed || status !== "confirmed") return { booking, customerEmail: "not_sent" };
+
+  try {
+    const settings = await currentSettings();
+    await sendConfirmationEmail({
+      to: booking.email,
+      customerName: booking.customerName,
+      serviceName: booking.serviceName,
+      date: booking.date,
+      time: booking.time,
+      deposit: booking.deposit,
+      // The public site, where the customer pays; never the admin host.
+      paymentLink: `${site.url}/book/payment/${booking.id}`,
+      depositPolicy: settings.deposit.policy,
+      studio: {
+        name: settings.business.name,
+        location: settings.business.location,
+        phone: settings.contact.phone,
+        whatsapp: settings.contact.whatsapp,
+        email: settings.contact.email,
+        mapsUrl: settings.contact.mapsUrl || undefined,
+      },
+    });
+    return { booking, customerEmail: "sent" };
+  } catch (error) {
+    console.error(`Failed to send the confirmation email for booking ${id}:`, error);
+    return { booking, customerEmail: "failed" };
+  }
+}
+
+function revalidateBooking(id: string) {
   revalidatePath("/admin");
   revalidatePath("/admin/bookings");
   revalidatePath(`/admin/bookings/${id}`);
+}
+
+/** Bookkeeping for deposits settled outside Paystack, waived, or refunded. */
+export async function setBookingDepositStatus(
+  id: string,
+  status: DepositStatus
+): Promise<Booking> {
+  const booking = await mutation(api.bookings.setDepositStatus, {
+    id: id as Id<"bookings">,
+    status,
+  });
+  revalidateBooking(id);
+  return booking;
+}
+
+/**
+ * Asks Paystack again about an unpaid deposit — for a customer who says they
+ * paid when the dashboard says otherwise. Settles it (and emails the studio)
+ * if the money did arrive.
+ */
+export async function recheckBookingDeposit(id: string): Promise<Booking> {
+  const check = await confirmDeposit(id);
+  if (check.state === "error") {
+    throw new Error("Paystack couldn't be reached. Please try again in a moment.");
+  }
+  const booking = await query(api.bookings.getById, { id: id as Id<"bookings"> });
+  if (!booking) throw new Error("Booking not found");
+  revalidateBooking(id);
   return booking;
 }
 
@@ -70,6 +148,7 @@ function serviceArgs(input: ServiceInput) {
     category: input.category,
     image: input.image,
     video: input.video || undefined,
+    depositAmount: input.depositAmount ?? undefined,
     featured: input.featured,
     active: input.active,
     sortOrder: input.sortOrder,
@@ -343,8 +422,14 @@ export async function updateAboutContent(about: AboutContent): Promise<AboutCont
 
 /* ------------------------------------------------------------------ settings */
 
+/** The effective settings, so a save of one section resends the rest intact. */
+async function currentSettings(): Promise<BusinessSettings> {
+  const row = await query(api.businessSettings.get, {});
+  return row ? withDefaults(row) : fallbackSettings;
+}
+
 export async function updateBusinessInfo(input: BusinessInfo): Promise<BusinessInfo> {
-  const current = (await query(api.businessSettings.get, {})) ?? fallbackSettings;
+  const current = await currentSettings();
   await mutation(api.businessSettings.save, {
     ...current,
     business: input,
@@ -356,7 +441,7 @@ export async function updateBusinessInfo(input: BusinessInfo): Promise<BusinessI
 }
 
 export async function updateContactInfo(input: ContactInfo): Promise<ContactInfo> {
-  const current = (await query(api.businessSettings.get, {})) ?? fallbackSettings;
+  const current = await currentSettings();
   await mutation(api.businessSettings.save, {
     ...current,
     contact: input,
@@ -369,7 +454,7 @@ export async function updateContactInfo(input: ContactInfo): Promise<ContactInfo
 }
 
 export async function updateBusinessHours(input: BusinessHours): Promise<BusinessHours> {
-  const current = (await query(api.businessSettings.get, {})) ?? fallbackSettings;
+  const current = await currentSettings();
   await mutation(api.businessSettings.save, {
     ...current,
     hours: input,
@@ -383,7 +468,7 @@ export async function updateBusinessHours(input: BusinessHours): Promise<Busines
 export async function updateBookingSettings(
   input: BookingSettings
 ): Promise<BookingSettings> {
-  const current = (await query(api.businessSettings.get, {})) ?? fallbackSettings;
+  const current = await currentSettings();
   await mutation(api.businessSettings.save, {
     ...current,
     booking: input,
@@ -395,7 +480,7 @@ export async function updateBookingSettings(
 }
 
 export async function updateSocialLinks(input: SocialLinks): Promise<SocialLinks> {
-  const current = (await query(api.businessSettings.get, {})) ?? fallbackSettings;
+  const current = await currentSettings();
   await mutation(api.businessSettings.save, {
     ...current,
     social: input,
@@ -403,5 +488,18 @@ export async function updateSocialLinks(input: SocialLinks): Promise<SocialLinks
   });
   revalidatePath("/admin/settings");
   revalidatePath("/");
+  return input;
+}
+
+export async function updateDepositSettings(input: DepositSettings): Promise<DepositSettings> {
+  const current = await currentSettings();
+  await mutation(api.businessSettings.save, {
+    ...current,
+    deposit: input,
+    section: "deposit",
+  });
+  revalidatePath("/admin/settings");
+  revalidateTag(PUBLIC_TAGS.deposit);
+  revalidatePath("/book");
   return input;
 }

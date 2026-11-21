@@ -2,8 +2,14 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import type { Doc, Id } from "./_generated/dataModel";
 import type { QueryCtx } from "./_generated/server";
-import { bookingStatus } from "./schema";
+import { bookingStatus, depositStatus } from "./schema";
 import { recordActivity, requireManager } from "./lib/auth";
+import {
+  DEPOSIT_CURRENCY,
+  depositAmountFor,
+  depositFeeFor,
+  feePercentOf,
+} from "./lib/deposit";
 
 /**
  * Bookings.
@@ -29,6 +35,7 @@ async function toClient(ctx: QueryCtx, booking: Doc<"bookings">) {
       ? ((await ctx.storage.getUrl(booking.inspirationImage)) ?? undefined)
       : undefined,
     status: booking.status,
+    deposit: booking.deposit,
     createdAt: booking._creationTime,
     // Convex has no built-in updatedAt; creation time is the honest fallback.
     updatedAt: booking._creationTime,
@@ -162,6 +169,12 @@ export const stats = query({
  * Called by the public booking form via /api/book. Unauthenticated on purpose
  * — anyone may request an appointment — so it writes a fixed `pending` status
  * and accepts no field that could escalate anything.
+ *
+ * The deposit is decided here, from the stored settings and service, never
+ * from the caller: a hand-crafted request can't name its own price. For the
+ * same reason the service title comes from the service record when the id
+ * resolves, so a booking can't claim one service while owing another's
+ * deposit.
  */
 export const create = mutation({
   args: {
@@ -176,7 +189,28 @@ export const create = mutation({
     inspirationImage: v.optional(v.id("_storage")),
   },
   handler: async (ctx, args) => {
-    const id = await ctx.db.insert("bookings", { ...args, status: "pending" });
+    const serviceDocId = ctx.db.normalizeId("services", args.serviceId);
+    const service = serviceDocId ? await ctx.db.get(serviceDocId) : null;
+    const settings = await ctx.db.query("businessSettings").first();
+
+    const amount = depositAmountFor(settings?.deposit, service?.depositAmount);
+    const deposit =
+      amount > 0
+        ? {
+            amount,
+            fee: depositFeeFor(amount, feePercentOf(settings?.deposit)),
+            currency: DEPOSIT_CURRENCY,
+            status: "unpaid" as const,
+          }
+        : null;
+
+    const serviceName = service?.title ?? args.serviceName;
+    const id = await ctx.db.insert("bookings", {
+      ...args,
+      serviceName,
+      status: "pending",
+      ...(deposit ? { deposit } : {}),
+    });
 
     // No `requireManager` here, so the actor is the customer, not an admin.
     await ctx.db.insert("activity", {
@@ -184,10 +218,15 @@ export const create = mutation({
       action: "booking.created",
       entity: "booking",
       entityId: id,
-      summary: `New booking request for ${args.serviceName} on ${args.date}`,
+      summary: deposit
+        ? `New booking request for ${serviceName} on ${args.date}, awaiting a GH₵${deposit.amount} deposit`
+        : `New booking request for ${serviceName} on ${args.date}`,
     });
 
-    return id;
+    return {
+      id,
+      deposit: deposit ? { amount: deposit.amount, currency: deposit.currency } : null,
+    };
   },
 });
 
@@ -197,6 +236,11 @@ export const generateInspirationUploadUrl = mutation({
   handler: async (ctx) => ctx.storage.generateUploadUrl(),
 });
 
+/**
+ * `changed` is false when the booking already had this status. The caller
+ * emails the customer on a change to `confirmed`, and a mutation is a
+ * transaction, so a double-click can't confirm (or email) twice.
+ */
 export const updateStatus = mutation({
   args: { id: v.id("bookings"), status: bookingStatus },
   handler: async (ctx, { id, status }) => {
@@ -204,12 +248,54 @@ export const updateStatus = mutation({
     const booking = await ctx.db.get(id);
     if (!booking) throw new Error("Booking not found");
 
-    await ctx.db.patch(id, { status });
+    const changed = booking.status !== status;
+    if (changed) {
+      await ctx.db.patch(id, { status });
+      await recordActivity(ctx, actor, {
+        action: `booking.${status}`,
+        entity: "booking",
+        entityId: id,
+        summary: `${booking.customerName}'s ${booking.serviceName} booking marked ${status.replace("_", "-")}`,
+      });
+    }
+
+    const updated = await ctx.db.get(id);
+    return { booking: await toClient(ctx, updated!), changed };
+  },
+});
+
+const DEPOSIT_SUMMARIES = {
+  unpaid: "marked unpaid",
+  paid: "marked paid outside Paystack",
+  waived: "waived",
+  refunded: "marked refunded",
+} as const;
+
+/**
+ * Manual deposit bookkeeping from the dashboard: a deposit paid by hand, one
+ * the studio chooses to waive, or a refund issued from the Paystack
+ * dashboard. Paystack payments themselves arrive through `payments.ts`.
+ */
+export const setDepositStatus = mutation({
+  args: { id: v.id("bookings"), status: depositStatus },
+  handler: async (ctx, { id, status }) => {
+    const actor = await requireManager(ctx);
+    const booking = await ctx.db.get(id);
+    if (!booking) throw new Error("Booking not found");
+    if (!booking.deposit) throw new Error("This booking has no deposit");
+
+    const deposit = { ...booking.deposit, status };
+    if (status === "paid" && booking.deposit.status !== "paid") {
+      deposit.paidAt = Date.now();
+      deposit.channel = "manual";
+    }
+
+    await ctx.db.patch(id, { deposit });
     await recordActivity(ctx, actor, {
-      action: `booking.${status}`,
+      action: "booking.deposit_updated",
       entity: "booking",
       entityId: id,
-      summary: `${booking.customerName}'s ${booking.serviceName} booking marked ${status.replace("_", "-")}`,
+      summary: `${booking.customerName}'s GH₵${booking.deposit.amount} deposit ${DEPOSIT_SUMMARIES[status]}`,
     });
 
     const updated = await ctx.db.get(id);

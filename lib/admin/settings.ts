@@ -2,7 +2,14 @@ import "server-only";
 import { api } from "@/convex/_generated/api";
 import { site } from "@/lib/site";
 import { query } from "./convex-server";
-import { WEEK_DAYS, type BusinessSettings, type DayHours, type WeekDay } from "@/types/admin";
+import { DEFAULT_FEE_PERCENT } from "@/convex/lib/deposit";
+import {
+  WEEK_DAYS,
+  type BusinessSettings,
+  type DayHours,
+  type PaymentsConfig,
+  type WeekDay,
+} from "@/types/admin";
 
 /**
  * Business settings.
@@ -53,8 +60,40 @@ export const fallbackSettings: BusinessSettings = {
     facebook: site.social.facebook,
     x: "",
   },
+  // Off until the owner turns it on — and Convex refuses that until Paystack
+  // is connected.
+  deposit: {
+    enabled: false,
+    defaultAmount: 50,
+    feePercent: DEFAULT_FEE_PERCENT,
+    policy:
+      "Your deposit holds your appointment and comes off the final price. It is refundable if you cancel at least 24 hours before your appointment.",
+  },
 };
 
+/**
+ * The stored row with defaults filled in. The row may predate a section (the
+ * deposit settings were added later), and every save sends all sections back.
+ */
+export function withDefaults(
+  row: Omit<BusinessSettings, "deposit"> & {
+    deposit?: Omit<BusinessSettings["deposit"], "feePercent"> & { feePercent?: number };
+  }
+): BusinessSettings {
+  return {
+    ...row,
+    deposit: row.deposit
+      ? { ...row.deposit, feePercent: row.deposit.feePercent ?? DEFAULT_FEE_PERCENT }
+      : fallbackSettings.deposit,
+  };
+}
+
 export async function getBusinessSettings(): Promise<BusinessSettings> {
-  return (await query(api.businessSettings.get, {})) ?? fallbackSettings;
+  const row = await query(api.businessSettings.get, {});
+  return row ? withDefaults(row) : fallbackSettings;
+}
+
+/** `null` when the payments functions can't be reached, e.g. not yet deployed. */
+export async function getPaymentsConfig(): Promise<PaymentsConfig | null> {
+  return query(api.payments.configuration, {}).catch(() => null);
 }

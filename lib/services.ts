@@ -15,5 +15,7 @@ export type Service = {
   image: string;
   /** Optional looping clip shown on the card instead of the image. */
   video?: string;
+  /** Overrides the studio's default deposit, in cedis. `0` exempts the service. */
+  depositAmount?: number;
   featured?: boolean;
 };

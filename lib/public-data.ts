@@ -5,6 +5,7 @@ import { api } from "@/convex/_generated/api";
 import { formatPrice } from "@/lib/admin/catalog";
 import type { Service } from "@/lib/services";
 import type { GalleryItem } from "@/lib/gallery";
+import type { DepositSettings } from "@/types/admin";
 
 /**
  * Public-site reads.
@@ -22,6 +23,7 @@ import type { GalleryItem } from "@/lib/gallery";
 export const PUBLIC_TAGS = {
   services: "public-services",
   gallery: "public-gallery",
+  deposit: "public-deposit",
 } as const;
 
 const ONE_HOUR = 3600;
@@ -38,6 +40,7 @@ export const getPublicServices = unstable_cache(
       duration: row.duration,
       image: row.image,
       video: row.video,
+      depositAmount: row.depositAmount,
       featured: row.featured,
     }));
   },
@@ -60,4 +63,12 @@ export const getPublicGallery = unstable_cache(
   },
   ["public-gallery"],
   { tags: [PUBLIC_TAGS.gallery], revalidate: ONE_HOUR }
+);
+
+/** The deposit rules the booking form shows; `null` while deposits are off. */
+export const getPublicDepositRules = unstable_cache(
+  async (): Promise<DepositSettings | null> =>
+    fetchQuery(api.businessSettings.getDepositRules, {}),
+  ["public-deposit"],
+  { tags: [PUBLIC_TAGS.deposit], revalidate: ONE_HOUR }
 );
